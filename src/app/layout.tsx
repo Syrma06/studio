@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({ // Use the renamed import
 });
 
 export const metadata: Metadata = {
-  title: 'Analizador EmoVision', // Updated title
-  description: 'Analiza conversaciones en busca de patrones de abuso emocional', // Updated description
+  title: 'Bienvenido a EmoVision', // Updated title for welcome page
+  description: 'Identifica señales de manipulación emocional o relaciones tóxicas en tus conversaciones digitales', // Updated description
 };
 
 export default function RootLayout({
