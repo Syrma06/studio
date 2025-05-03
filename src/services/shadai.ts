@@ -38,47 +38,53 @@
    const categories = new Set<string>();
    const examples = new Set<string>();
    const recommendations = new Set<string>([
-        'Considera establecer límites claros en tus conversaciones.',
-        'Reflexiona sobre cómo te hacen sentir estas interacciones.'
+        'Reflexiona activamente sobre cómo te sientes después de interactuar. ¿Te sientes agotado/a, ansioso/a o confundido/a?',
+        'Establece límites claros y comunícalos asertivamente. Por ejemplo: "No me siento cómodo/a cuando hablamos de esa manera".'
     ]);
 
 
    if (text.toLowerCase().includes("if you really loved me") || text.toLowerCase().includes("si me quisieras de verdad")) {
      riskLevel = Math.max(riskLevel, 75);
-     categories.add("manipulacion");
+     categories.add("manipulación");
      examples.add("“Si de verdad me quisieras, harías...”");
-     recommendations.add('Reconoce las declaraciones condicionales como posibles tácticas de manipulación.');
+     recommendations.add('Identifica las condiciones ("si tú...") como una táctica de manipulación emocional. El amor genuino no suele ser condicional de esa manera.');
+     recommendations.add('Cuestiona la lógica detrás de estas declaraciones. ¿Es realmente una prueba de amor o un intento de control?');
    }
     if (text.toLowerCase().includes("you're crazy") || text.toLowerCase().includes("estás loco") || text.toLowerCase().includes("estás loca")) {
      riskLevel = Math.max(riskLevel, 85);
      categories.add("gaslighting");
      examples.add("“Estás exagerando/loco/loca.”");
-     recommendations.add('Confía en tu propia percepción de la realidad.');
-     recommendations.add('Busca validación de amigos de confianza o profesionales.');
+     recommendations.add('El "gaslighting" busca hacerte dudar de tu propia percepción y cordura. Confía en tus sentimientos y recuerdos.');
+     recommendations.add('Lleva un registro de las conversaciones o eventos si es necesario para validar tu experiencia.');
+     recommendations.add('Busca validación externa hablando con amigos de confianza, familiares o un terapeuta sobre lo que estás experimentando.');
    }
     if (text.toLowerCase().includes("nobody else understands you") || text.toLowerCase().includes("nadie más te va a entender")) {
      riskLevel = Math.max(riskLevel, 80);
      categories.add("aislamiento");
      examples.add("“Nadie más te entiende como yo.”");
-     recommendations.add('Mantén conexiones con amigos y familiares.');
+     recommendations.add('Esta frase es una señal de alerta de aislamiento. Una persona que te quiere bien fomentará tus relaciones externas.');
+     recommendations.add('Esfuérzate conscientemente por mantener y nutrir tus conexiones sociales con amigos y familiares.');
    }
    if (text.toLowerCase().includes("you always") || text.toLowerCase().includes("you never") || text.toLowerCase().includes("siempre haces") || text.toLowerCase().includes("nunca haces")) {
      riskLevel = Math.max(riskLevel, 60);
      categories.add("generalizacion");
      examples.add("“Siempre arruinas todo.” / “Nunca escuchas.”");
-      recommendations.add('Desafía las generalizaciones con ejemplos específicos.');
+     recommendations.add('Las generalizaciones ("siempre", "nunca") rara vez son ciertas y suelen usarse para atacar en lugar de resolver problemas. Identifícalas como críticas destructivas.');
+     recommendations.add('Responde pidiendo ejemplos específicos o enfócate en el problema actual sin caer en generalizaciones.');
    }
     if (text.toLowerCase().includes("it's your fault") || text.toLowerCase().includes("es tu culpa")) {
      riskLevel = Math.max(riskLevel, 70);
      categories.add("culpabilizacion");
      examples.add("“Es tu culpa que me enoje.”");
-     recommendations.add('Recuerda que no eres responsable de las acciones o emociones de los demás.');
+     recommendations.add('La culpabilización constante es una forma de manipulación. Recuerda que no eres responsable de las emociones o acciones de otra persona.');
+     recommendations.add('Practica la auto-compasión y no internalices la culpa que intentan imponerte.');
    }
 
    // Add default recommendations if high risk detected
    if (riskLevel > 70) {
-        recommendations.add('Considera consultar a un profesional de la salud mental.');
-        recommendations.add('Habla con un amigo de confianza o familiar sobre tus preocupaciones.');
+        recommendations.add('Dado el nivel de riesgo, considera seriamente buscar apoyo profesional de un terapeuta especializado en relaciones o abuso emocional.');
+        recommendations.add('Habla abierta y honestamente con alguien de tu círculo de confianza (amigo cercano, familiar) sobre tus preocupaciones y los patrones que observas.');
+        recommendations.add('Infórmate más sobre los diferentes tipos de abuso emocional y manipulación para reconocerlos mejor.');
    }
 
    // Simple risk adjustment based on length
