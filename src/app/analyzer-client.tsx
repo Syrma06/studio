@@ -198,7 +198,7 @@ export default function AnalyzerClient() {
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">Analizador Alumbra</CardTitle> {/* Changed title */}
+          <CardTitle className="text-2xl font-bold text-primary">💡 Analizador Alumbra</CardTitle> {/* Changed title and added emoji */}
           <CardDescription>
             Introduce el texto de la conversación abajo para analizar signos de manipulación o abuso emocional.
           </CardDescription>
