@@ -17,12 +17,44 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, AlertCircle, Terminal } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
+import { useFormField } from '@/components/ui/form'; // Import useFormField hook
 
 const FormSchema = z.object({
   conversationText: z.string().min(10, {
-    message: "Conversation text must be at least 10 characters.",
+    message: "El texto de la conversación debe tener al menos 10 caracteres.",
   }),
 });
+
+// Helper function to safely call useFormContext
+const SafeUseFormContext = () => {
+  try {
+    return useFormContext();
+  } catch (e) {
+    // console.warn("useFormContext called outside of FormProvider. This might happen if Form component structure changed.");
+    return null; // Return null or a mock object if preferred
+  }
+};
+
+// Helper function to safely call useFormField
+const SafeUseFormField = () => {
+    try {
+        return useFormField();
+    } catch (e) {
+        // console.warn("useFormField called outside of FormField. This might happen if Form component structure changed.");
+        const id = React.useId(); // Generate a fallback ID
+        return {
+            error: null,
+            formItemId: `${id}-form-item`,
+            formDescriptionId: `${id}-form-item-description`,
+            formMessageId: `${id}-form-item-message`,
+            // Provide default values for other properties if necessary
+            invalid: false,
+            isTouched: false,
+            isDirty: false,
+        };
+    }
+};
+
 
 export default function AnalyzerClient() {
   const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null);
@@ -36,6 +68,14 @@ export default function AnalyzerClient() {
     },
   });
 
+  // Check if form context exists
+  // This check is primarily for debugging and might not be strictly necessary
+  // if the component structure always ensures FormProvider wraps FormField.
+  const formContext = SafeUseFormContext();
+  // if (!formContext && process.env.NODE_ENV === 'development') {
+  //   console.warn("AnalyzerClient: useFormContext returned null. Ensure FormField is inside FormProvider.");
+  // }
+
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     setIsLoading(true);
     setError(null);
@@ -48,8 +88,8 @@ export default function AnalyzerClient() {
       await new Promise(resolve => setTimeout(resolve, 500));
       setAnalysisResult(result.analysisResult);
     } catch (err) {
-      console.error("Analysis failed:", err);
-      setError("Failed to analyze the conversation. Please try again.");
+      console.error("Análisis fallido:", err);
+      setError("Error al analizar la conversación. Por favor, inténtalo de nuevo.");
     } finally {
       setIsLoading(false);
     }
@@ -66,9 +106,9 @@ export default function AnalyzerClient() {
     <div className="w-full max-w-4xl space-y-8">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">EmoVision Analyzer</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">Analizador EmoVision</CardTitle>
           <CardDescription>
-            Input conversation text below to analyze for signs of manipulation or emotional abuse.
+            Introduce el texto de la conversación abajo para analizar signos de manipulación o abuso emocional.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,10 +119,10 @@ export default function AnalyzerClient() {
                 name="conversationText"
                 render={({ field }) => (
                   <FormItem>
-                    <RHFFormLabel>Conversation Text</RHFFormLabel> {/* Use renamed RHF FormLabel */}
+                    <RHFFormLabel>Texto de la Conversación</RHFFormLabel> {/* Use renamed RHF FormLabel */}
                     <FormControl>
                       <Textarea
-                        placeholder="Paste the conversation here..."
+                        placeholder="Pega la conversación aquí..."
                         className="min-h-[150px] resize-y"
                         {...field}
                       />
@@ -95,10 +135,10 @@ export default function AnalyzerClient() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
+                    Analizando...
                   </>
                 ) : (
-                  "Analyze Conversation"
+                  "Analizar Conversación"
                 )}
               </Button>
             </form>
@@ -149,26 +189,26 @@ export default function AnalyzerClient() {
       {analysisResult && !isLoading && (
         <Card className="w-full">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-primary">Analysis Results</CardTitle>
-            <CardDescription>Risk assessment based on the provided text.</CardDescription>
+            <CardTitle className="text-xl font-semibold text-primary">Resultados del Análisis</CardTitle>
+            <CardDescription>Evaluación de riesgo basada en el texto proporcionado.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Overall Risk Level ({analysisResult.nivel_riesgo} / 100)</Label> {/* Use standard Label */}
+              <Label>Nivel de Riesgo General ({analysisResult.nivel_riesgo} / 100)</Label> {/* Use standard Label */}
               <Progress
                 value={analysisResult.nivel_riesgo}
                 className="w-full h-3 mt-1"
                 indicatorClassName={getProgressColor(analysisResult.nivel_riesgo)}
-                aria-label={`Risk level ${analysisResult.nivel_riesgo} out of 100`}
+                aria-label={`Nivel de riesgo ${analysisResult.nivel_riesgo} de 100`}
               />
             </div>
             {analysisResult.categorias_detectadas.length > 0 && (
               <div>
-                <Label>Detected Categories</Label> {/* Use standard Label */}
+                <Label>Categorías Detectadas</Label> {/* Use standard Label */}
                 <div className="flex flex-wrap gap-2 mt-1">
                   {analysisResult.categorias_detectadas.map((category, index) => (
                     <Badge key={index} variant={index % 2 === 0 ? "secondary" : "outline"} className="capitalize">
-                      {category}
+                      {category.replace(/_/g, ' ')} {/* Replace underscores with spaces for display */}
                     </Badge>
                   ))}
                 </div>
@@ -176,10 +216,10 @@ export default function AnalyzerClient() {
             )}
             {analysisResult.ejemplos.length > 0 && (
               <div>
-                <Label>Problematic Examples Found</Label> {/* Use standard Label */}
+                <Label>Ejemplos Problemáticos Encontrados</Label> {/* Use standard Label */}
                 <Alert className="mt-1">
                   <Terminal className="h-4 w-4" />
-                  <AlertTitle>Identified Phrases</AlertTitle>
+                  <AlertTitle>Frases Identificadas</AlertTitle>
                   <AlertDescription>
                     <ul className="list-disc list-inside space-y-1 mt-1">
                       {analysisResult.ejemplos.map((example, index) => (
@@ -193,7 +233,7 @@ export default function AnalyzerClient() {
           </CardContent>
           {analysisResult.recomendaciones.length > 0 && (
              <CardFooter className="flex-col items-start">
-                <Label className="mb-1">Recommendations</Label> {/* Use standard Label */}
+                <Label className="mb-1">Recomendaciones</Label> {/* Use standard Label */}
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                   {analysisResult.recomendaciones.map((rec, index) => (
                     <li key={index}>{rec}</li>

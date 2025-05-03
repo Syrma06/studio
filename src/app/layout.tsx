@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({ // Use the renamed import
 });
 
 export const metadata: Metadata = {
-  title: 'EmoVision Analyzer', // Updated title
-  description: 'Analyze conversations for emotional abuse patterns', // Updated description
+  title: 'Analizador EmoVision', // Updated title
+  description: 'Analiza conversaciones en busca de patrones de abuso emocional', // Updated description
 };
 
 export default function RootLayout({
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es"> {/* Changed lang to es */}
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
         <Toaster /> {/* Add Toaster */}

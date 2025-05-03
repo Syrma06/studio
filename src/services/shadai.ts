@@ -38,47 +38,47 @@
    const categories = new Set<string>();
    const examples = new Set<string>();
    const recommendations = new Set<string>([
-        'Consider setting clear boundaries in your conversations.',
-        'Reflect on how these interactions make you feel.'
+        'Considera establecer límites claros en tus conversaciones.',
+        'Reflexiona sobre cómo te hacen sentir estas interacciones.'
     ]);
 
 
    if (text.toLowerCase().includes("if you really loved me") || text.toLowerCase().includes("si me quisieras de verdad")) {
      riskLevel = Math.max(riskLevel, 75);
      categories.add("manipulacion");
-     examples.add("“If you really loved me, you would...”");
-     recommendations.add('Recognize conditional statements as potential manipulation tactics.');
+     examples.add("“Si de verdad me quisieras, harías...”");
+     recommendations.add('Reconoce las declaraciones condicionales como posibles tácticas de manipulación.');
    }
     if (text.toLowerCase().includes("you're crazy") || text.toLowerCase().includes("estás loco") || text.toLowerCase().includes("estás loca")) {
      riskLevel = Math.max(riskLevel, 85);
      categories.add("gaslighting");
-     examples.add("“You're just being overly sensitive/crazy.”");
-     recommendations.add('Trust your own perception of reality.');
-     recommendations.add('Seek validation from trusted friends or professionals.');
+     examples.add("“Estás exagerando/loco/loca.”");
+     recommendations.add('Confía en tu propia percepción de la realidad.');
+     recommendations.add('Busca validación de amigos de confianza o profesionales.');
    }
     if (text.toLowerCase().includes("nobody else understands you") || text.toLowerCase().includes("nadie más te va a entender")) {
      riskLevel = Math.max(riskLevel, 80);
      categories.add("aislamiento");
-     examples.add("“Nobody else understands you like I do.”");
-     recommendations.add('Maintain connections with friends and family.');
+     examples.add("“Nadie más te entiende como yo.”");
+     recommendations.add('Mantén conexiones con amigos y familiares.');
    }
    if (text.toLowerCase().includes("you always") || text.toLowerCase().includes("you never") || text.toLowerCase().includes("siempre haces") || text.toLowerCase().includes("nunca haces")) {
      riskLevel = Math.max(riskLevel, 60);
      categories.add("generalizacion");
-     examples.add("“You always mess things up.” / “You never listen.”");
-      recommendations.add('Challenge generalizations with specific examples.');
+     examples.add("“Siempre arruinas todo.” / “Nunca escuchas.”");
+      recommendations.add('Desafía las generalizaciones con ejemplos específicos.');
    }
     if (text.toLowerCase().includes("it's your fault") || text.toLowerCase().includes("es tu culpa")) {
      riskLevel = Math.max(riskLevel, 70);
      categories.add("culpabilizacion");
-     examples.add("“It's your fault I got angry.”");
-     recommendations.add('Remember that you are not responsible for others\' actions or emotions.');
+     examples.add("“Es tu culpa que me enoje.”");
+     recommendations.add('Recuerda que no eres responsable de las acciones o emociones de los demás.');
    }
 
    // Add default recommendations if high risk detected
    if (riskLevel > 70) {
-        recommendations.add('Consider consulting a mental health professional.');
-        recommendations.add('Talk to a trusted friend or family member about your concerns.');
+        recommendations.add('Considera consultar a un profesional de la salud mental.');
+        recommendations.add('Habla con un amigo de confianza o familiar sobre tus preocupaciones.');
    }
 
    // Simple risk adjustment based on length
