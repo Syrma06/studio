@@ -1,22 +1,14 @@
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Image from 'next/image'; // Import next/image
+// Removed Image import as logo is removed
 
 export default function WelcomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 md:p-12 lg:p-24 bg-background">
       <div className="text-center mb-12">
-         {/* Use next/image for the logo */}
-         <Image
-            src="/placeholder_logo.svg" // Placeholder path - replace with actual logo if available
-            alt="EmoVision Logo"
-            width={100} // Adjust width as needed
-            height={100} // Adjust height as needed
-            className="mx-auto mb-4"
-            data-ai-hint="logo brain heart" // Added AI hint
-          />
-        <h1 className="text-5xl font-bold text-primary mb-4">EmoVision</h1>
+         {/* Removed Image component for logo */}
+        <h1 className="text-5xl font-bold text-primary mb-4">Alumbra</h1> {/* Changed title to Alumbra */}
         <p className="text-xl text-muted-foreground">
           Identifica señales de manipulación emocional o relaciones tóxicas en tus conversaciones digitales
         </p>
@@ -24,7 +16,7 @@ export default function WelcomePage() {
 
       <Card className="w-full max-w-4xl shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-semibold">Bienvenidos a EmoVision</CardTitle>
+          <CardTitle className="text-2xl font-semibold">Bienvenidos a Alumbra</CardTitle> {/* Changed title */}
         </CardHeader>
         <CardContent className="space-y-8">
           <p className="text-center text-muted-foreground px-4 sm:px-8">
@@ -81,11 +73,4 @@ export default function WelcomePage() {
   );
 }
 
-// Placeholder SVG Logo (replace with actual logo file or component if available)
-const PlaceholderLogo = () => (
-    <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="mx-auto mb-4">
-        <path d="M50 10C27.9086 10 10 27.9086 10 50C10 72.0914 27.9086 90 50 90C72.0914 90 90 72.0914 90 50C90 27.9086 72.0914 10 50 10ZM50 82C32.3269 82 18 67.6731 18 50C18 32.3269 32.3269 18 50 18C67.6731 18 82 32.3269 82 50C82 67.6731 67.6731 82 50 82Z" fill="hsl(var(--primary))"/>
-        <path d="M65 35H35C32.2386 35 30 37.2386 30 40V60C30 62.7614 32.2386 65 35 65H65C67.7614 65 70 62.7614 70 60V40C70 37.2386 67.7614 35 65 35Z" stroke="hsl(var(--primary))" strokeWidth="4"/>
-        <path d="M45 45H55V55H45V45Z" fill="hsl(var(--accent))"/>
-    </svg>
-);
+// Removed PlaceholderLogo SVG component

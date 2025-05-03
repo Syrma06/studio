@@ -5,7 +5,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 
 export const metadata: Metadata = {
-  title: 'EmoVision', // Consistent title
+  title: 'Alumbra', // Change title to Alumbra
   description: 'Identifica señales de manipulación emocional o relaciones tóxicas en tus conversaciones digitales', // Updated description
 };
 

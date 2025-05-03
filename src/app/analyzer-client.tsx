@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation'; // Import useRouter
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel as RHFFormLabel, FormMessage } from "@/components/ui/form"; // Renamed FormLabel to avoid conflict
+import { Form, FormControl, FormField, FormItem, FormLabel as RHFFormLabel, FormMessage, useFormField } from "@/components/ui/form"; // Renamed FormLabel and imported useFormField
 import { Label } from "@/components/ui/label"; // Import standard Label
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Loader2, AlertCircle, Terminal, Download, ArrowLeft } from "lucide-react"; // Added ArrowLeft
 import { Skeleton } from '@/components/ui/skeleton';
-import { useFormField } from '@/components/ui/form'; // Import useFormField hook
+// Removed duplicate import of useFormField hook
 
 const ConversationFormSchema = z.object({
   conversationText: z.string().min(10, {
@@ -35,27 +35,6 @@ const DownloadFormSchema = z.object({
     apellido: z.string().min(1, { message: "El apellido es obligatorio." }),
     edad: z.coerce.number().int().min(1, { message: "La edad debe ser un número positivo." }).max(120, { message: "Edad inválida." }),
 });
-
-// Helper function to safely call useFormField
-const SafeUseFormField = () => {
-    try {
-        return useFormField();
-    } catch (e) {
-        // Fallback for scenarios where Form context might not be available initially
-        // Although, with FormProvider wrapping, this might be less necessary
-        // console.warn("useFormField called outside of Form context, providing fallback.");
-        const id = React.useId();
-        return {
-            error: null,
-            formItemId: `${id}-form-item`,
-            formDescriptionId: `${id}-form-item-description`,
-            formMessageId: `${id}-form-item-message`,
-            invalid: false,
-            isTouched: false,
-            isDirty: false,
-        };
-    }
-};
 
 
 export default function AnalyzerClient() {
@@ -172,14 +151,14 @@ export default function AnalyzerClient() {
         const image = canvas.toDataURL('image/png', 1.0);
         const link = document.createElement('a');
         link.href = image;
-        link.download = `EmoVision_Analisis_${userData.apellido}_${userData.nombre}.png`;
+        link.download = `Alumbra_Analisis_${userData.apellido}_${userData.nombre}.png`; // Changed filename prefix
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
         toast({
             title: "Descarga Completa",
-            description: "El análisis EmoVision se ha descargado como imagen.",
+            description: "El análisis Alumbra se ha descargado como imagen.", // Changed description
         });
         setIsDownloadDialogOpen(false); // Close dialog on success
         downloadForm.reset(); // Reset download form
@@ -219,7 +198,7 @@ export default function AnalyzerClient() {
 
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-primary">Analizador EmoVision</CardTitle>
+          <CardTitle className="text-2xl font-bold text-primary">Analizador Alumbra</CardTitle> {/* Changed title */}
           <CardDescription>
             Introduce el texto de la conversación abajo para analizar signos de manipulación o abuso emocional.
           </CardDescription>
@@ -234,7 +213,7 @@ export default function AnalyzerClient() {
                   name="conversationText"
                   render={({ field }) => (
                     <FormItem>
-                      {/* Use SafeUseFormField or ensure Form context exists */}
+                      {/* RHFFormLabel expects to be within a FormItem provided by FormField */}
                       <RHFFormLabel>Texto de la Conversación</RHFFormLabel>
                       <FormControl>
                         <Textarea
@@ -314,7 +293,7 @@ export default function AnalyzerClient() {
         // Add ref and data-testid to the results card for capturing
         <Card ref={analysisResultCardRef} data-testid="analysis-card" className="w-full">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-primary">Resultados del Análisis EmoVision</CardTitle>
+            <CardTitle className="text-xl font-semibold text-primary">Resultados del Análisis Alumbra</CardTitle> {/* Changed title */}
             <CardDescription>Evaluación de riesgo basada en el texto proporcionado.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -377,7 +356,7 @@ export default function AnalyzerClient() {
                  </DialogTrigger>
                  <DialogContent className="sm:max-w-[425px]">
                      <DialogHeader>
-                         <DialogTitle>Descargar Análisis EmoVision</DialogTitle>
+                         <DialogTitle>Descargar Análisis Alumbra</DialogTitle> {/* Changed title */}
                          <DialogDescription>
                              Ingresa tus datos para incluir en la descarga. La imagen se guardará localmente.
                          </DialogDescription>
@@ -391,7 +370,7 @@ export default function AnalyzerClient() {
                                      name="nombre"
                                      render={({ field }) => (
                                          <FormItem className="grid grid-cols-4 items-center gap-4">
-                                             {/* Use SafeUseFormField or ensure Form context */}
+                                             {/* Use RHFFormLabel here */}
                                              <RHFFormLabel className="text-right">Nombre</RHFFormLabel>
                                              <FormControl>
                                                  <Input {...field} className="col-span-3" aria-label="Nombre" />
@@ -405,7 +384,7 @@ export default function AnalyzerClient() {
                                      name="apellido"
                                      render={({ field }) => (
                                          <FormItem className="grid grid-cols-4 items-center gap-4">
-                                             {/* Use SafeUseFormField or ensure Form context */}
+                                              {/* Use RHFFormLabel here */}
                                              <RHFFormLabel className="text-right">Apellido</RHFFormLabel>
                                              <FormControl>
                                                  <Input {...field} className="col-span-3" aria-label="Apellido" />
@@ -419,7 +398,7 @@ export default function AnalyzerClient() {
                                      name="edad"
                                      render={({ field }) => (
                                          <FormItem className="grid grid-cols-4 items-center gap-4">
-                                             {/* Use SafeUseFormField or ensure Form context */}
+                                              {/* Use RHFFormLabel here */}
                                              <RHFFormLabel className="text-right">Edad</RHFFormLabel>
                                              <FormControl>
                                                 {/* Ensure type="number" */}
