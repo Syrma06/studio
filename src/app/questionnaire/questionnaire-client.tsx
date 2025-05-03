@@ -219,7 +219,10 @@ export default function QuestionnaireClient() {
                 )}
               />
 
-              <Button type="submit" className="w-full" style={{backgroundColor: '#C8A2C8', color: 'white' }}> {/* Mimic button style */}
+              <Button
+                type="submit"
+                className="w-full bg-[hsl(var(--questionnaire-button-bg))] text-[hsl(var(--questionnaire-button-fg))] hover:bg-[hsl(var(--questionnaire-button-bg),0.9)]" // Use CSS variables for button style
+              >
                 Continuar
               </Button>
             </form>

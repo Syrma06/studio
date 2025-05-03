@@ -130,8 +130,10 @@ export default function AnalyzerClient() {
         userInfoElement.style.padding = '5px';
         userInfoElement.style.borderRadius = '4px';
         userInfoElement.style.fontSize = '10px';
-        userInfoElement.style.color = '#333';
+        userInfoElement.style.color = '#333'; // Use dark text for light background
         userInfoElement.style.zIndex = '1'; // Ensure it's above other content if needed
+        // Add a data attribute for easier selection in onclone
+        userInfoElement.setAttribute('data-html2canvas-userinfo', 'true');
         userInfoElement.innerHTML = `
             Análisis para: ${userData.nombre} ${userData.apellido} (Edad: ${userData.edad})<br/>
             Fecha: ${new Date().toLocaleDateString('es-ES')}
@@ -144,13 +146,18 @@ export default function AnalyzerClient() {
             scale: 2,
             useCORS: true,
             backgroundColor: null, // Use element's background by default
-            // Ensure the info element is captured
+             // Ensure the info element is captured correctly
             onclone: (documentClone) => {
-                 // Re-find the element in the cloned document if necessary
-                const clonedInfoElement = documentClone.querySelector('[data-html2canvas-userinfo]');
-                if (clonedInfoElement) {
-                    // Apply styles again if needed, though usually inherited
-                }
+                 const clonedCard = documentClone.querySelector('[data-testid="analysis-card"]'); // Assuming you add data-testid="analysis-card" to the Card
+                 const clonedInfoElement = documentClone.querySelector('[data-html2canvas-userinfo]');
+
+                 if (clonedCard && clonedInfoElement) {
+                     // Ensure the card uses the light theme background explicitly for capture
+                     // Adjust color values if your theme differs significantly
+                    clonedCard.style.backgroundColor = 'hsl(var(--card))'; // Explicitly set card background
+                    clonedInfoElement.style.color = 'hsl(var(--card-foreground))'; // Ensure text is readable on card background
+                    clonedInfoElement.style.backgroundColor = 'hsla(var(--background), 0.8)'; // Use background with alpha
+                 }
              }
         });
 
@@ -304,8 +311,8 @@ export default function AnalyzerClient() {
       )}
 
       {analysisResult && !isLoading && (
-        // Add ref to the results card for capturing
-        <Card ref={analysisResultCardRef} className="w-full">
+        // Add ref and data-testid to the results card for capturing
+        <Card ref={analysisResultCardRef} data-testid="analysis-card" className="w-full">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-primary">Resultados del Análisis EmoVision</CardTitle>
             <CardDescription>Evaluación de riesgo basada en el texto proporcionado.</CardDescription>
