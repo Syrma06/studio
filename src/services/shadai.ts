@@ -1,94 +1,91 @@
 /**
-  * Represents the result of analyzing a conversation for emotional abuse and manipulation.
+  * Representa el resultado de analizar una conversación en busca de abuso emocional y manipulación.
+  * Esta interfaz es utilizada tanto por el flujo de IA como por el componente cliente.
   */
  export interface AnalysisResult {
    /**
-    * The overall risk level, from 0 to 100.
+    * El nivel de riesgo general, de 0 a 100.
     */
    nivel_riesgo: number;
    /**
-    * Categories of abuse detected in the conversation.
+    * Categorías de abuso detectadas en la conversación.
     */
    categorias_detectadas: string[];
    /**
-    * Example phrases from the conversation that indicate abuse.
+    * Frases de ejemplo de la conversación que indican abuso.
     */
    ejemplos: string[];
    /**
-    * Recommendations for the user based on the analysis.
+    * Recomendaciones para el usuario basadas en el análisis.
     */
    recomendaciones: string[];
  }
 
  /**
-  * Analyzes a conversation using the ShadAI model to detect emotional abuse and manipulation.
+  * [Implementación Mock/Fallback] Analiza una conversación para detectar abuso emocional y manipulación.
+  * NOTA: Esta es una implementación simulada y ya no es la principal fuente de análisis.
+  * Se mantiene para referencia, pruebas o como posible fallback. El análisis real se realiza
+  * mediante el flujo de Genkit en `src/ai/flows/analyze-conversation.ts`.
   *
-  * @param text The conversation text to analyze.
-  * @returns A promise that resolves to an AnalysisResult object.
+  * @param text El texto de la conversación a analizar.
+  * @returns Una promesa que resuelve a un objeto AnalysisResult simulado.
   */
  export async function analyzeConversation(text: string): Promise<AnalysisResult> {
-   // Mocked implementation for demonstration purposes.
-   // In a real application, this would call the actual ShadAI API.
+   // Mocked implementation for demonstration/testing/fallback purposes.
+   // The actual analysis is now handled by the Genkit flow.
 
    // Simulate API call delay
-   await new Promise(resolve => setTimeout(resolve, 1000));
+   await new Promise(resolve => setTimeout(resolve, 500)); // Reduced delay
 
-   // Example logic to vary results based on input length or content
-   let riskLevel = 50;
+   // Example logic to vary results based on input length or content (kept for reference)
+   let riskLevel = 30; // Lower default risk for mock
    const categories = new Set<string>();
    const examples = new Set<string>();
    const recommendations = new Set<string>([
-        'Reflexiona activamente sobre cómo te sientes después de interactuar. ¿Te sientes agotado/a, ansioso/a o confundido/a?',
-        'Establece límites claros y comunícalos asertivamente. Por ejemplo: "No me siento cómodo/a cuando hablamos de esa manera".'
+        'Recuerda comunicarte asertivamente.',
+        'Confía en tu percepción de la situación.'
     ]);
 
 
    if (text.toLowerCase().includes("if you really loved me") || text.toLowerCase().includes("si me quisieras de verdad")) {
      riskLevel = Math.max(riskLevel, 75);
      categories.add("manipulación");
-     examples.add("“Si de verdad me quisieras, harías...”");
-     recommendations.add('Identifica las condiciones ("si tú...") como una táctica de manipulación emocional. El amor genuino no suele ser condicional de esa manera.');
-     recommendations.add('Cuestiona la lógica detrás de estas declaraciones. ¿Es realmente una prueba de amor o un intento de control?');
+     examples.add("“Si de verdad me quisieras, harías...” (detectado por mock)");
+     recommendations.add('Mock: Cuestiona las condiciones en el afecto.');
    }
     if (text.toLowerCase().includes("you're crazy") || text.toLowerCase().includes("estás loco") || text.toLowerCase().includes("estás loca")) {
      riskLevel = Math.max(riskLevel, 85);
      categories.add("gaslighting");
-     examples.add("“Estás exagerando/loco/loca.”");
-     recommendations.add('El "gaslighting" busca hacerte dudar de tu propia percepción y cordura. Confía en tus sentimientos y recuerdos.');
-     recommendations.add('Lleva un registro de las conversaciones o eventos si es necesario para validar tu experiencia.');
-     recommendations.add('Busca validación externa hablando con amigos de confianza, familiares o un terapeuta sobre lo que estás experimentando.');
+     examples.add("“Estás exagerando/loco/loca.” (detectado por mock)");
+     recommendations.add('Mock: El gaslighting busca invalidarte. Confía en ti.');
    }
     if (text.toLowerCase().includes("nobody else understands you") || text.toLowerCase().includes("nadie más te va a entender")) {
      riskLevel = Math.max(riskLevel, 80);
      categories.add("aislamiento");
-     examples.add("“Nadie más te entiende como yo.”");
-     recommendations.add('Esta frase es una señal de alerta de aislamiento. Una persona que te quiere bien fomentará tus relaciones externas.');
-     recommendations.add('Esfuérzate conscientemente por mantener y nutrir tus conexiones sociales con amigos y familiares.');
+     examples.add("“Nadie más te entiende como yo.” (detectado por mock)");
+     recommendations.add('Mock: Fomentar el aislamiento es una señal de alerta.');
    }
    if (text.toLowerCase().includes("you always") || text.toLowerCase().includes("you never") || text.toLowerCase().includes("siempre haces") || text.toLowerCase().includes("nunca haces")) {
      riskLevel = Math.max(riskLevel, 60);
      categories.add("generalizacion");
-     examples.add("“Siempre arruinas todo.” / “Nunca escuchas.”");
-     recommendations.add('Las generalizaciones ("siempre", "nunca") rara vez son ciertas y suelen usarse para atacar en lugar de resolver problemas. Identifícalas como críticas destructivas.');
-     recommendations.add('Responde pidiendo ejemplos específicos o enfócate en el problema actual sin caer en generalizaciones.');
+     examples.add("“Siempre arruinas todo.” / “Nunca escuchas.” (detectado por mock)");
+     recommendations.add('Mock: Las generalizaciones suelen ser injustas.');
    }
     if (text.toLowerCase().includes("it's your fault") || text.toLowerCase().includes("es tu culpa")) {
      riskLevel = Math.max(riskLevel, 70);
      categories.add("culpabilizacion");
-     examples.add("“Es tu culpa que me enoje.”");
-     recommendations.add('La culpabilización constante es una forma de manipulación. Recuerda que no eres responsable de las emociones o acciones de otra persona.');
-     recommendations.add('Practica la auto-compasión y no internalices la culpa que intentan imponerte.');
+     examples.add("“Es tu culpa que me enoje.” (detectado por mock)");
+     recommendations.add('Mock: No eres responsable de las emociones ajenas.');
    }
 
    // Add default recommendations if high risk detected
    if (riskLevel > 70) {
-        recommendations.add('Dado el nivel de riesgo, considera seriamente buscar apoyo profesional de un terapeuta especializado en relaciones o abuso emocional.');
-        recommendations.add('Habla abierta y honestamente con alguien de tu círculo de confianza (amigo cercano, familiar) sobre tus preocupaciones y los patrones que observas.');
-        recommendations.add('Infórmate más sobre los diferentes tipos de abuso emocional y manipulación para reconocerlos mejor.');
+        recommendations.add('Mock: Considera buscar apoyo si el riesgo es alto.');
+        recommendations.add('Mock: Habla con alguien de confianza.');
    }
 
    // Simple risk adjustment based on length
-   riskLevel = Math.min(100, riskLevel + Math.floor(text.length / 100));
+   riskLevel = Math.min(100, riskLevel + Math.floor(text.length / 150)); // Adjusted mock logic
 
 
    return {
@@ -98,3 +95,5 @@
      recomendaciones: Array.from(recommendations),
    };
  }
+
+    
