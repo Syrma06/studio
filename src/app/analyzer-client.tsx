@@ -8,6 +8,7 @@ import { analyze, AnalyzeConversationInput, AnalyzeConversationOutput } from '@/
 import type { AnalysisResult } from '@/services/shadai';
 import html2canvas from 'html2canvas';
 import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Loader2, AlertCircle, Terminal, Download } from "lucide-react";
+import { Loader2, AlertCircle, Terminal, Download, ArrowLeft } from "lucide-react"; // Added ArrowLeft
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFormField } from '@/components/ui/form'; // Import useFormField hook
 
@@ -40,6 +41,9 @@ const SafeUseFormField = () => {
     try {
         return useFormField();
     } catch (e) {
+        // Fallback for scenarios where Form context might not be available initially
+        // Although, with FormProvider wrapping, this might be less necessary
+        // console.warn("useFormField called outside of Form context, providing fallback.");
         const id = React.useId();
         return {
             error: null,
@@ -62,6 +66,7 @@ export default function AnalyzerClient() {
   const [isDownloadDialogOpen, setIsDownloadDialogOpen] = React.useState(false);
   const analysisResultCardRef = React.useRef<HTMLDivElement>(null);
   const { toast } = useToast(); // Initialize useToast
+  const router = useRouter(); // Initialize useRouter
 
   const conversationForm = useForm<z.infer<typeof ConversationFormSchema>>({
     resolver: zodResolver(ConversationFormSchema),
@@ -87,7 +92,7 @@ export default function AnalyzerClient() {
     try {
       const input: AnalyzeConversationInput = { text: data.conversationText };
       const result: AnalyzeConversationOutput = await analyze(input);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate slight delay if needed
       setAnalysisResult(result.analysisResult);
     } catch (err) {
       console.error("Análisis fallido:", err);
@@ -113,37 +118,51 @@ export default function AnalyzerClient() {
     }
     setIsDownloading(true);
 
+    let userInfoElement: HTMLDivElement | null = null; // Declare outside try block
+
     try {
-        // Temporarily add user data for capture - consider a less intrusive way if possible
-        const userInfoElement = document.createElement('div');
-        userInfoElement.style.position = 'absolute'; // Use absolute to minimize layout shift
+        // Create and append user info element for capture
+        userInfoElement = document.createElement('div');
+        userInfoElement.style.position = 'absolute';
         userInfoElement.style.bottom = '10px';
         userInfoElement.style.left = '10px';
-        userInfoElement.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'; // Semi-transparent background
+        userInfoElement.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
         userInfoElement.style.padding = '5px';
         userInfoElement.style.borderRadius = '4px';
-        userInfoElement.style.fontSize = '10px'; // Smaller font size
-        userInfoElement.style.color = '#333'; // Dark text color
+        userInfoElement.style.fontSize = '10px';
+        userInfoElement.style.color = '#333';
+        userInfoElement.style.zIndex = '1'; // Ensure it's above other content if needed
         userInfoElement.innerHTML = `
             Análisis para: ${userData.nombre} ${userData.apellido} (Edad: ${userData.edad})<br/>
             Fecha: ${new Date().toLocaleDateString('es-ES')}
         `;
-        analysisResultCardRef.current.style.position = 'relative'; // Ensure parent is relative for absolute positioning
+        analysisResultCardRef.current.style.position = 'relative'; // Ensure parent is relative
         analysisResultCardRef.current.appendChild(userInfoElement);
 
 
         const canvas = await html2canvas(analysisResultCardRef.current, {
-            scale: 2, // Increase scale for better resolution
-            useCORS: true, // If there are external images/styles
-            backgroundColor: null, // Use element's background
+            scale: 2,
+            useCORS: true,
+            backgroundColor: null, // Use element's background by default
+            // Ensure the info element is captured
+            onclone: (documentClone) => {
+                 // Re-find the element in the cloned document if necessary
+                const clonedInfoElement = documentClone.querySelector('[data-html2canvas-userinfo]');
+                if (clonedInfoElement) {
+                    // Apply styles again if needed, though usually inherited
+                }
+             }
         });
 
-         // Remove the temporary element after capture
-        analysisResultCardRef.current.removeChild(userInfoElement);
-        analysisResultCardRef.current.style.position = ''; // Reset position
+        // Remove the temporary element ONLY AFTER capture is complete
+        if (analysisResultCardRef.current && userInfoElement && analysisResultCardRef.current.contains(userInfoElement)) {
+            analysisResultCardRef.current.removeChild(userInfoElement);
+            analysisResultCardRef.current.style.position = ''; // Reset position
+            userInfoElement = null; // Clear reference
+        }
 
 
-        const image = canvas.toDataURL('image/png', 1.0); // Use PNG for better quality
+        const image = canvas.toDataURL('image/png', 1.0);
         const link = document.createElement('a');
         link.href = image;
         link.download = `EmoVision_Analisis_${userData.apellido}_${userData.nombre}.png`;
@@ -166,7 +185,7 @@ export default function AnalyzerClient() {
             description: "No se pudo generar la imagen del análisis.",
         });
         // Ensure temporary element is removed even on error
-        if (analysisResultCardRef.current?.contains(userInfoElement)) {
+        if (analysisResultCardRef.current && userInfoElement && analysisResultCardRef.current.contains(userInfoElement)) {
              analysisResultCardRef.current.removeChild(userInfoElement);
              analysisResultCardRef.current.style.position = '';
         }
@@ -174,6 +193,7 @@ export default function AnalyzerClient() {
         setIsDownloading(false);
     }
   };
+
 
   // Function to get progress bar color based on risk level
   const getProgressColor = (level: number) => {
@@ -184,6 +204,12 @@ export default function AnalyzerClient() {
 
   return (
     <div className="w-full max-w-4xl space-y-8">
+       {/* Go Back Button */}
+       <Button variant="outline" onClick={() => router.push('/questionnaire')} className="mb-4 self-start">
+           <ArrowLeft className="mr-2 h-4 w-4" />
+           Volver al Cuestionario
+       </Button>
+
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-primary">Analizador EmoVision</CardTitle>
@@ -201,6 +227,7 @@ export default function AnalyzerClient() {
                   name="conversationText"
                   render={({ field }) => (
                     <FormItem>
+                      {/* Use SafeUseFormField or ensure Form context exists */}
                       <RHFFormLabel>Texto de la Conversación</RHFFormLabel>
                       <FormControl>
                         <Textarea
@@ -231,33 +258,39 @@ export default function AnalyzerClient() {
       </Card>
 
       {isLoading && (
-        <Card className="w-full">
+        <Card className="w-full animate-pulse"> {/* Added pulse animation */}
            <CardHeader>
              <Skeleton className="h-6 w-1/3" />
-             <Skeleton className="h-4 w-2/3" />
+             <Skeleton className="h-4 w-2/3 mt-2" /> {/* Added margin */}
            </CardHeader>
-           <CardContent className="space-y-4">
+           <CardContent className="space-y-6"> {/* Increased spacing */}
              <div className="space-y-2">
                 <Skeleton className="h-4 w-1/4" />
-                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-10 w-full" /> {/* Taller for progress */}
              </div>
               <div className="space-y-2">
                  <Skeleton className="h-4 w-1/4" />
-                 <div className="flex space-x-2">
+                 <div className="flex flex-wrap gap-2"> {/* Use flex-wrap */}
                     <Skeleton className="h-6 w-24 rounded-full" />
-                    <Skeleton className="h-6 w-24 rounded-full" />
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-6 w-28 rounded-full" />
                  </div>
               </div>
               <div className="space-y-2">
                  <Skeleton className="h-4 w-1/4" />
                  <Skeleton className="h-5 w-full" />
                  <Skeleton className="h-5 w-5/6" />
+                 <Skeleton className="h-5 w-4/6" />
               </div>
            </CardContent>
-           <CardFooter>
-              <Skeleton className="h-4 w-1/4 mb-2"/>
+           <CardFooter className="flex flex-col items-start space-y-2"> {/* Adjusted layout */}
+              <Skeleton className="h-4 w-1/4 mb-1"/> {/* Reduced margin */}
+              <Skeleton className="h-5 w-full" />
               <Skeleton className="h-5 w-full" />
               <Skeleton className="h-5 w-4/5" />
+               <div className="flex justify-end w-full mt-4"> {/* Button skeleton */}
+                  <Skeleton className="h-10 w-36"/>
+               </div>
            </CardFooter>
         </Card>
       )}
@@ -302,11 +335,11 @@ export default function AnalyzerClient() {
             {analysisResult.ejemplos.length > 0 && (
               <div>
                 <Label>Ejemplos Problemáticos Encontrados</Label>
-                <Alert className="mt-1">
-                  <Terminal className="h-4 w-4" />
-                  <AlertTitle>Frases Identificadas</AlertTitle>
+                <Alert className="mt-1 bg-muted/50"> {/* Slightly different background */}
+                  <Terminal className="h-4 w-4 text-muted-foreground" /> {/* Muted icon */}
+                  <AlertTitle className="text-sm font-medium">Frases Identificadas</AlertTitle> {/* Smaller title */}
                   <AlertDescription>
-                    <ul className="list-disc list-inside space-y-1 mt-1">
+                    <ul className="list-disc list-inside space-y-1 mt-2 pl-2"> {/* Added padding */}
                       {analysisResult.ejemplos.map((example, index) => (
                         <li key={index} className="text-sm text-muted-foreground italic">"{example}"</li>
                       ))}
@@ -317,8 +350,8 @@ export default function AnalyzerClient() {
             )}
              {analysisResult.recomendaciones.length > 0 && (
                  <div className="pt-2"> {/* Added spacing */}
-                    <Label>Recomendaciones</Label>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground mt-1">
+                    <Label>Recomendaciones Detalladas</Label> {/* Enhanced label */}
+                    <ul className="list-disc list-inside space-y-2 text-sm text-foreground mt-1 pl-2"> {/* Changed text color and added padding */}
                       {analysisResult.recomendaciones.map((rec, index) => (
                         <li key={index}>{rec}</li>
                       ))}
@@ -339,7 +372,7 @@ export default function AnalyzerClient() {
                      <DialogHeader>
                          <DialogTitle>Descargar Análisis EmoVision</DialogTitle>
                          <DialogDescription>
-                             Ingresa tus datos para incluir en la descarga.
+                             Ingresa tus datos para incluir en la descarga. La imagen se guardará localmente.
                          </DialogDescription>
                      </DialogHeader>
                      {/* Wrap download form with FormProvider */}
@@ -351,6 +384,7 @@ export default function AnalyzerClient() {
                                      name="nombre"
                                      render={({ field }) => (
                                          <FormItem className="grid grid-cols-4 items-center gap-4">
+                                             {/* Use SafeUseFormField or ensure Form context */}
                                              <RHFFormLabel className="text-right">Nombre</RHFFormLabel>
                                              <FormControl>
                                                  <Input {...field} className="col-span-3" aria-label="Nombre" />
@@ -364,6 +398,7 @@ export default function AnalyzerClient() {
                                      name="apellido"
                                      render={({ field }) => (
                                          <FormItem className="grid grid-cols-4 items-center gap-4">
+                                             {/* Use SafeUseFormField or ensure Form context */}
                                              <RHFFormLabel className="text-right">Apellido</RHFFormLabel>
                                              <FormControl>
                                                  <Input {...field} className="col-span-3" aria-label="Apellido" />
@@ -377,10 +412,11 @@ export default function AnalyzerClient() {
                                      name="edad"
                                      render={({ field }) => (
                                          <FormItem className="grid grid-cols-4 items-center gap-4">
+                                             {/* Use SafeUseFormField or ensure Form context */}
                                              <RHFFormLabel className="text-right">Edad</RHFFormLabel>
                                              <FormControl>
                                                 {/* Ensure type="number" */}
-                                                 <Input {...field} type="number" className="col-span-3" aria-label="Edad" />
+                                                 <Input {...field} type="number" className="col-span-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" aria-label="Edad" value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}/>
                                              </FormControl>
                                              <FormMessage className="col-span-4 text-right" />
                                          </FormItem>

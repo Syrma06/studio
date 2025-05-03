@@ -41,6 +41,8 @@ body {
     --sidebar-accent-foreground: 204 100% 20%; /* Darker Blue */
     --sidebar-border: 204 20% 85%; /* Slightly darker border */
     --sidebar-ring: 204 100% 30%; /* Deep Blue */
+    --questionnaire-button-bg: 270 33% 80%; /* Light Purple/Lavender from image #C8A2C8 */
+    --questionnaire-button-fg: 0 0% 100%; /* White */
   }
   .dark {
     /* Adding a basic dark theme based on the light theme for completeness */
@@ -76,6 +78,8 @@ body {
     --sidebar-accent-foreground: 0 0% 95%;
     --sidebar-border: 204 15% 25%;
     --sidebar-ring: 204 90% 60%;
+     --questionnaire-button-bg: 270 33% 70%; /* Slightly adjusted for dark */
+    --questionnaire-button-fg: 0 0% 100%;
   }
 }
 

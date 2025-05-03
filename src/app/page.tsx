@@ -28,7 +28,7 @@ export default function WelcomePage() {
               </CardHeader>
               <CardContent>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                  <li>Responde un breve cuestionario <span className="text-xs italic">(funcionalidad futura)</span></li>
+                  <li>Responde un breve cuestionario</li>
                   <li>Copia y pega una conversación</li>
                   <li>Recibe un análisis personalizado</li>
                   <li>Obtén recomendaciones útiles</li>
@@ -54,8 +54,8 @@ export default function WelcomePage() {
           </div>
 
           <div className="text-center pt-4">
-             {/* Use Next.js Link component for client-side navigation */}
-            <Link href="/analyzer" passHref>
+             {/* Use Next.js Link component for client-side navigation - Updated href */}
+            <Link href="/questionnaire" passHref>
               <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
                 Comenzar análisis
               </Button>
