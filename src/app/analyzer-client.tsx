@@ -10,7 +10,8 @@ import type { AnalysisResult } from '@/services/shadai';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel as RHFFormLabel, FormMessage } from "@/components/ui/form"; // Renamed FormLabel to avoid conflict
+import { Label } from "@/components/ui/label"; // Import standard Label
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -78,7 +79,7 @@ export default function AnalyzerClient() {
                 name="conversationText"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Conversation Text</FormLabel>
+                    <RHFFormLabel>Conversation Text</RHFFormLabel> {/* Use renamed RHF FormLabel */}
                     <FormControl>
                       <Textarea
                         placeholder="Paste the conversation here..."
@@ -153,7 +154,7 @@ export default function AnalyzerClient() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <FormLabel>Overall Risk Level ({analysisResult.nivel_riesgo} / 100)</FormLabel>
+              <Label>Overall Risk Level ({analysisResult.nivel_riesgo} / 100)</Label> {/* Use standard Label */}
               <Progress
                 value={analysisResult.nivel_riesgo}
                 className="w-full h-3 mt-1"
@@ -163,7 +164,7 @@ export default function AnalyzerClient() {
             </div>
             {analysisResult.categorias_detectadas.length > 0 && (
               <div>
-                <FormLabel>Detected Categories</FormLabel>
+                <Label>Detected Categories</Label> {/* Use standard Label */}
                 <div className="flex flex-wrap gap-2 mt-1">
                   {analysisResult.categorias_detectadas.map((category, index) => (
                     <Badge key={index} variant={index % 2 === 0 ? "secondary" : "outline"} className="capitalize">
@@ -175,7 +176,7 @@ export default function AnalyzerClient() {
             )}
             {analysisResult.ejemplos.length > 0 && (
               <div>
-                <FormLabel>Problematic Examples Found</FormLabel>
+                <Label>Problematic Examples Found</Label> {/* Use standard Label */}
                 <Alert className="mt-1">
                   <Terminal className="h-4 w-4" />
                   <AlertTitle>Identified Phrases</AlertTitle>
@@ -192,7 +193,7 @@ export default function AnalyzerClient() {
           </CardContent>
           {analysisResult.recomendaciones.length > 0 && (
              <CardFooter className="flex-col items-start">
-                <FormLabel className="mb-1">Recommendations</FormLabel>
+                <Label className="mb-1">Recommendations</Label> {/* Use standard Label */}
                 <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                   {analysisResult.recomendaciones.map((rec, index) => (
                     <li key={index}>{rec}</li>
