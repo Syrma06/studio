@@ -47,7 +47,13 @@ const UserDataFormSchema = z.object({
     nombre: z.string().min(1, { message: "El nombre es obligatorio." }),
     apellido: z.string().min(1, { message: "El apellido es obligatorio." }),
     edad: z.coerce.number().int().min(1, { message: "La edad debe ser un número positivo." }).max(120, { message: "Edad inválida." }),
+    genero: z.enum(["hombre", "mujer", "prefiero_no_decirlo"], {
+        required_error: "Debes seleccionar una opción de género.",
+    }),
 });
+
+// Add genero type to UserData
+type UserData = z.infer<typeof UserDataFormSchema>;
 
 export default function QuestionnaireClient() {
   const router = useRouter();
@@ -55,6 +61,7 @@ export default function QuestionnaireClient() {
   const [isUserDataDialogOpen, setIsUserDataDialogOpen] = React.useState(false);
   const [isSubmittingUserData, setIsSubmittingUserData] = React.useState(false);
   const [isTermsDialogOpen, setIsTermsDialogOpen] = React.useState(false); // State for terms dialog
+  const [questionnaireData, setQuestionnaireData] = React.useState<z.infer<typeof QuestionnaireFormSchema> | null>(null); // Store questionnaire data
 
   const questionnaireForm = useForm<z.infer<typeof QuestionnaireFormSchema>>({
     resolver: zodResolver(QuestionnaireFormSchema),
@@ -69,22 +76,39 @@ export default function QuestionnaireClient() {
         nombre: "",
         apellido: "",
         edad: undefined,
+        genero: undefined,
     },
   });
 
   function onQuestionnaireSubmit(data: z.infer<typeof QuestionnaireFormSchema>) {
     console.log("Questionnaire Data:", data); // Optional: Log data
+    setQuestionnaireData(data); // Store questionnaire data before opening dialog
     // Open the user data dialog after questionnaire submission
     setIsUserDataDialogOpen(true);
   }
 
-  async function onUserDataSubmit(userData: z.infer<typeof UserDataFormSchema>) {
+  async function onUserDataSubmit(userData: UserData) { // Use UserData type
+    if (!questionnaireData) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Faltan datos del cuestionario. Inténtalo de nuevo.",
+        });
+        return;
+    }
+
     setIsSubmittingUserData(true);
     try {
-      // Save user data to localStorage
-      localStorage.setItem('alumbraUserData', JSON.stringify(userData));
+      // Combine questionnaire data and user data for storage
+      const combinedData = {
+          ...questionnaireData,
+          ...userData,
+      };
 
-      console.log("User Data Saved:", userData);
+      // Save combined data to localStorage
+      localStorage.setItem('alumbraUserData', JSON.stringify(combinedData));
+
+      console.log("User Data Saved:", combinedData);
       toast({
         title: "Datos guardados",
         description: "Tu información ha sido guardada temporalmente.",
@@ -398,6 +422,48 @@ export default function QuestionnaireClient() {
                                    </FormItem>
                                )}
                            />
+                           {/* Gender Radio Group */}
+                           <FormField
+                             control={userDataForm.control}
+                             name="genero"
+                             render={({ field }) => (
+                               <FormItem className="space-y-3">
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                    <RHFFormLabel className="text-right">Género</RHFFormLabel>
+                                    <FormControl className="col-span-3">
+                                        <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-4"
+                                        aria-label="Género"
+                                        >
+                                        <FormItem className="flex items-center space-x-2">
+                                            <FormControl>
+                                            <RadioGroupItem value="hombre" id="g-hombre" />
+                                            </FormControl>
+                                            <Label htmlFor="g-hombre" className="font-normal">Hombre</Label>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2">
+                                            <FormControl>
+                                            <RadioGroupItem value="mujer" id="g-mujer" />
+                                            </FormControl>
+                                            <Label htmlFor="g-mujer" className="font-normal">Mujer</Label>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-2">
+                                            <FormControl>
+                                            <RadioGroupItem value="prefiero_no_decirlo" id="g-otro" />
+                                            </FormControl>
+                                            <Label htmlFor="g-otro" className="font-normal">Prefiero no decirlo</Label>
+                                        </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                  </div>
+                                  <FormMessage className="col-span-4 text-right" /> {/* Adjust positioning if needed */}
+                               </FormItem>
+                             )}
+                            />
+
+
                            <DialogFooter>
                                <DialogClose asChild>
                                   <Button type="button" variant="outline" disabled={isSubmittingUserData}>Cancelar</Button>
@@ -439,7 +505,7 @@ export default function QuestionnaireClient() {
                     <p>La aplicación utiliza modelos de IA (Gemini) para analizar el texto proporcionado. La precisión del análisis puede variar y no está garantizada. La IA puede malinterpretar matices o contexto. Utiliza los resultados como un punto de partida para la reflexión, no como una verdad absoluta.</p>
 
                     <h3 className="font-semibold text-foreground">3. Privacidad y Datos</h3>
-                    <p>Respetamos tu privacidad. Las conversaciones que ingresas para análisis se procesan de forma segura y no se almacenan permanentemente asociadas a tu identidad después del análisis. Los datos del cuestionario (nombre, apellido, edad) se guardan temporalmente en el almacenamiento local de tu navegador (`localStorage`) únicamente para incluirlos en la descarga del análisis si decides hacerlo. Estos datos no se envían a nuestros servidores de forma persistente.</p>
+                    <p>Respetamos tu privacidad. Las conversaciones que ingresas para análisis se procesan de forma segura y no se almacenan permanentemente asociadas a tu identidad después del análisis. Los datos del cuestionario (tipo de relación, respuestas a preguntas) y los datos personales (nombre, apellido, edad, género) se guardan temporalmente en el almacenamiento local de tu navegador (`localStorage`) únicamente para incluirlos en la descarga del análisis si decides hacerlo y para contextualizar el análisis de la IA. Estos datos no se envían a nuestros servidores de forma persistente.</p>
                     <p>Podemos recopilar datos anónimos sobre el uso de la aplicación para mejorar nuestros servicios. Esto no incluirá el contenido de tus conversaciones ni tus datos personales identificables.</p>
 
                     <h3 className="font-semibold text-foreground">4. Limitación de Responsabilidad</h3>
@@ -475,3 +541,4 @@ export default function QuestionnaireClient() {
   );
 }
 
+    

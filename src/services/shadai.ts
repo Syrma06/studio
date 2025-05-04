@@ -1,3 +1,4 @@
+
 /**
   * Representa el resultado de analizar una conversación en busca de abuso emocional y manipulación.
   * Esta interfaz es utilizada tanto por el flujo de IA como por el componente cliente.
@@ -19,6 +20,10 @@
     * Recomendaciones para el usuario basadas en el análisis.
     */
    recomendaciones: string[];
+   /**
+    * Identificación de quién parece ser el principal perpetrador del abuso/manipulación.
+    */
+   posible_agresor: "usuario" | "interlocutor" | "ambiguo" | "ninguno";
  }
 
  /**
@@ -42,9 +47,10 @@
    const categories = new Set<string>();
    const examples = new Set<string>();
    const recommendations = new Set<string>([
-        'Recuerda comunicarte asertivamente.',
-        'Confía en tu percepción de la situación.'
+        'Mock: Recuerda comunicarte asertivamente.', // Added Mock prefix
+        'Mock: Confía en tu percepción de la situación.' // Added Mock prefix
     ]);
+    let possibleAggressor: AnalysisResult['posible_agresor'] = 'ninguno';
 
 
    if (text.toLowerCase().includes("if you really loved me") || text.toLowerCase().includes("si me quisieras de verdad")) {
@@ -52,31 +58,46 @@
      categories.add("manipulación");
      examples.add("“Si de verdad me quisieras, harías...” (detectado por mock)");
      recommendations.add('Mock: Cuestiona las condiciones en el afecto.');
+     possibleAggressor = 'interlocutor'; // Assume interlocutor for mock
    }
     if (text.toLowerCase().includes("you're crazy") || text.toLowerCase().includes("estás loco") || text.toLowerCase().includes("estás loca")) {
      riskLevel = Math.max(riskLevel, 85);
      categories.add("gaslighting");
      examples.add("“Estás exagerando/loco/loca.” (detectado por mock)");
      recommendations.add('Mock: El gaslighting busca invalidarte. Confía en ti.');
+      possibleAggressor = 'interlocutor'; // Assume interlocutor for mock
    }
     if (text.toLowerCase().includes("nobody else understands you") || text.toLowerCase().includes("nadie más te va a entender")) {
      riskLevel = Math.max(riskLevel, 80);
      categories.add("aislamiento");
      examples.add("“Nadie más te entiende como yo.” (detectado por mock)");
      recommendations.add('Mock: Fomentar el aislamiento es una señal de alerta.');
+      possibleAggressor = 'interlocutor'; // Assume interlocutor for mock
    }
    if (text.toLowerCase().includes("you always") || text.toLowerCase().includes("you never") || text.toLowerCase().includes("siempre haces") || text.toLowerCase().includes("nunca haces")) {
      riskLevel = Math.max(riskLevel, 60);
      categories.add("generalizacion");
      examples.add("“Siempre arruinas todo.” / “Nunca escuchas.” (detectado por mock)");
      recommendations.add('Mock: Las generalizaciones suelen ser injustas.');
+     // Could be either, leave as is or make ambiguous for mock
    }
     if (text.toLowerCase().includes("it's your fault") || text.toLowerCase().includes("es tu culpa")) {
      riskLevel = Math.max(riskLevel, 70);
      categories.add("culpabilizacion");
      examples.add("“Es tu culpa que me enoje.” (detectado por mock)");
      recommendations.add('Mock: No eres responsable de las emociones ajenas.');
+      possibleAggressor = 'interlocutor'; // Assume interlocutor for mock
    }
+
+   // Example for user as aggressor (mock)
+    if (text.toLowerCase().includes("i only get angry because you make me") || text.toLowerCase().includes("me haces enojar")) {
+        riskLevel = Math.max(riskLevel, 70);
+        categories.add("culpabilizacion");
+        examples.add("“Me haces enojar.” (detectado por mock)");
+        recommendations.add('Mock (Usuario): Asume responsabilidad por tus emociones.');
+        possibleAggressor = 'usuario'; // Set user as aggressor for mock
+    }
+
 
    // Add default recommendations if high risk detected
    if (riskLevel > 70) {
@@ -93,6 +114,7 @@
      categorias_detectadas: Array.from(categories),
      ejemplos: Array.from(examples),
      recomendaciones: Array.from(recommendations),
+     posible_agresor: possibleAggressor, // Return determined aggressor
    };
  }
 

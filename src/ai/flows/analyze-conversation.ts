@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -14,6 +15,9 @@ import type { AnalysisResult } from '@/services/shadai'; // Keep type import
 
 const AnalyzeConversationInputSchema = z.object({
   text: z.string().describe('El texto de la conversación a analizar.'),
+  // Add gender and relationshipType to input schema
+  generoUsuario: z.enum(["hombre", "mujer", "prefiero_no_decirlo"]).describe('El género del usuario que proporciona la conversación.'),
+  tipoRelacion: z.enum(["pareja", "amistad", "familiar"]).describe('El tipo de relación entre las personas en la conversación.'),
 });
 export type AnalyzeConversationInput = z.infer<typeof AnalyzeConversationInputSchema>;
 
@@ -33,7 +37,10 @@ const AnalyzeConversationOutputSchema = z.object({
       .describe('Frases textuales exactas de la conversación que ejemplifican las categorías detectadas. Si no hay ejemplos claros, devolver un array vacío.'),
     recomendaciones: z
       .array(z.string())
-      .describe('Recomendaciones específicas, detalladas y accionables para la persona que experimenta la conversación, basadas directamente en las categorías y ejemplos detectados. Deben ser elaboradas y explicar el *por qué* de la recomendación en relación al análisis. Evitar consejos genéricos.'),
+      .describe('Recomendaciones específicas, detalladas y accionables para la persona que experimenta la conversación, basadas directamente en las categorías y ejemplos detectados. Deben ser elaboradas y explicar el *por qué* de la recomendación en relación al análisis, considerando el contexto de género y la posibilidad de que el usuario sea el agresor. Evitar consejos genéricos.'),
+     posible_agresor: z
+      .enum(["usuario", "interlocutor", "ambiguo", "ninguno"])
+      .describe('Identificación de quién parece ser el principal perpetrador del abuso/manipulación según el análisis. "usuario" si parece ser la persona que envió el texto, "interlocutor" si parece ser la otra persona, "ambiguo" si no está claro o ambos participan, "ninguno" si no se detecta abuso significativo.'),
   }).describe('El resultado detallado del análisis de la conversación.')
 });
 export type AnalyzeConversationOutput = z.infer<typeof AnalyzeConversationOutputSchema>;
@@ -47,21 +54,37 @@ const analysisPrompt = ai.definePrompt({
   name: 'conversationAnalysisPrompt',
   input: { schema: AnalyzeConversationInputSchema },
   output: { schema: AnalyzeConversationOutputSchema },
-  prompt: `Eres un experto psicólogo especializado en detectar abuso emocional y manipulación en relaciones interpersonales a través de texto. Analiza la siguiente conversación detenidamente.
+  prompt: `Eres un experto psicólogo especializado en detectar abuso emocional y manipulación en relaciones interpersonales a través de texto. Analiza la siguiente conversación detenidamente, considerando el contexto proporcionado.
 
-Conversación:
+**Contexto:**
+*   **Género del Usuario que envía el texto:** {{{generoUsuario}}}
+*   **Tipo de Relación:** {{{tipoRelacion}}}
+
+**Conversación:**
 {{{text}}}
 
-Basado en tu análisis experto, completa el siguiente objeto JSON:
+**Instrucciones de Análisis:**
 
-1.  **nivel_riesgo**: Estima un nivel de riesgo general (0-100) que indique la probabilidad e intensidad del abuso emocional o manipulación presente. Considera la frecuencia, severidad y tipo de tácticas observadas.
-2.  **categorias_detectadas**: Identifica y lista las categorías específicas de abuso o manipulación que encuentres (ej. "gaslighting", "culpabilización", "aislamiento", "minimización", "amenazas veladas", "condicionamiento del afecto", "generalización excesiva", "invalidación emocional"). Sé preciso. Si no detectas nada, deja el array vacío.
-3.  **ejemplos**: Extrae frases textuales exactas de la conversación que sirvan como ejemplos claros de las categorías detectadas. Si encuentras múltiples ejemplos para una categoría, incluye los más representativos. Si no hay ejemplos claros, deja el array vacío.
-4.  **recomendaciones**: Proporciona recomendaciones MUY específicas, elaboradas y accionables para la persona que está en esta conversación. Las recomendaciones deben:
-    *   Estar directamente relacionadas con las 'categorias_detectadas' y los 'ejemplos'.
-    *   Explicar *por qué* esa táctica específica es problemática (ej. "La frase '...' es un ejemplo de gaslighting porque intenta hacerte dudar de tu percepción. Una recomendación es...").
-    *   Ofrecer pasos concretos y detallados (ej. "En lugar de aceptar la culpa, podrías responder con 'No soy responsable de tus emociones. Hablemos de cómo resolver esto'. Considera también documentar estos incidentes...").
-    *   Evitar consejos genéricos como "busca ayuda" o "establece límites" sin explicar *cómo* hacerlo en el contexto específico de la conversación analizada. Adapta el consejo a la situación. Si el riesgo es alto, sugiere buscar ayuda profesional como una recomendación *adicional* y específica, explicando por qué es necesario en este caso.
+1.  **Identifica Patrones:** Busca patrones de comportamiento como gaslighting, culpabilización, aislamiento, minimización, amenazas (veladas o directas), condicionamiento del afecto, invalidación emocional, celos excesivos, control, etc.
+2.  **Evalúa la Dinámica:** Considera la dinámica de poder y cómo se manifiesta en la conversación. ¿Hay un desequilibrio claro? ¿Una persona parece dominar o intimidar a la otra?
+3.  **Considera el Género (si es relevante):** Si el género es 'hombre' o 'mujer' y la relación es 'pareja', ten en cuenta posibles dinámicas de género asociadas al abuso, pero evita estereotipos. Si el género es 'prefiero_no_decirlo' o la relación no es 'pareja', mantén un enfoque neutral.
+4.  **Analiza AMBAS PARTES:** Es crucial determinar quién ejerce el comportamiento abusivo/manipulador. **Considera la posibilidad de que la persona que envió el texto (el usuario) sea quien está ejerciendo el abuso.** No asumas automáticamente que el usuario es la víctima. Basa tu conclusión en la evidencia del texto.
+5.  **Determina el Posible Agresor:** Basado en tu análisis, clasifica quién parece ser el principal agresor en el campo 'posible_agresor'. Las opciones son:
+    *   `usuario`: Si la evidencia textual sugiere que la persona que envió la conversación es quien ejerce el comportamiento problemático.
+    *   `interlocutor`: Si la evidencia sugiere que la otra persona en la conversación es quien ejerce el comportamiento problemático.
+    *   `ambiguo`: Si ambos muestran comportamientos problemáticos significativos o no está claro quién es el principal agresor.
+    *   `ninguno`: Si no se detecta abuso o manipulación relevante.
+6.  **Genera el Resultado JSON:** Completa el siguiente objeto JSON con tu análisis detallado:
+
+    *   **nivel_riesgo**: Estima un nivel de riesgo general (0-100) de abuso/manipulación. Considera frecuencia, severidad y tipos de tácticas.
+    *   **categorias_detectadas**: Lista las categorías específicas detectadas. Sé preciso. Array vacío si no hay.
+    *   **ejemplos**: Extrae frases textuales *exactas* como ejemplos claros. Array vacío si no hay.
+    *   **recomendaciones**: Proporciona recomendaciones específicas, detalladas y accionables. **Adapta las recomendaciones según quién sea el 'posible_agresor'**:
+        *   **Si el 'posible_agresor' es 'interlocutor'**: Enfócate en proteger al usuario. Explica por qué las tácticas son dañinas (ej., "La frase '...' es gaslighting, busca hacerte dudar. Esto puede minar tu autoestima."). Ofrece estrategias concretas (ej., "Documenta estos incidentes.", "Busca apoyo externo.", "Establece límites claros diciendo 'No acepto que me hables así'."). Recomienda ayuda profesional si el riesgo es alto.
+        *   **Si el 'posible_agresor' es 'usuario'**: Enfócate en la autoconciencia y el cambio de comportamiento del usuario. Explica por qué *sus* acciones son problemáticas (ej., "Usar frases como '...' es culpabilizar a tu pareja, lo cual es una forma de manipulación."). Sugiere reflexión y alternativas saludables (ej., "Considera por qué reaccionas así.", "Busca formas de comunicar tus necesidades sin herir.", "La terapia puede ayudarte a entender y cambiar estos patrones.").
+        *   **Si el 'posible_agresor' es 'ambiguo'**: Reconoce la toxicidad mutua. Recomienda terapia individual para ambos y posiblemente terapia de pareja (si es seguro y apropiado). Sugiere enfocarse en la comunicación no violenta.
+        *   **Si el 'posible_agresor' es 'ninguno'**: Ofrece consejos generales sobre comunicación saludable si aplica, o simplemente indica que no se detectaron señales preocupantes.
+        *   **En todos los casos:** Las recomendaciones deben ser **puntuales, accionables y explicar el porqué**, relacionándolas directamente con las categorías y ejemplos. Evita consejos vagos.
 
 Asegúrate de que tu salida sea únicamente el objeto JSON con la estructura definida en 'AnalyzeConversationOutputSchema', sin ningún texto introductorio o explicaciones adicionales fuera del JSON.`,
 });
@@ -76,13 +99,11 @@ const analyzeConversationFlow = ai.defineFlow<
   outputSchema: AnalyzeConversationOutputSchema,
 },
 async input => {
+  console.log("Analizando con Input:", input); // Log input for debugging
   const { output } = await analysisPrompt(input);
 
-  // The prompt is configured to return the exact output schema.
-  if (!output) {
-      // Handle cases where the model might fail to return valid JSON
-      // You could return a default error state or throw an error
-      console.error("El modelo no devolvió una salida válida.");
+  if (!output || !output.analysisResult) { // Check if analysisResult exists
+      console.error("El modelo no devolvió una salida válida o completa.");
       // Return a default/error structure matching the schema
       return {
           analysisResult: {
@@ -90,22 +111,14 @@ async input => {
               categorias_detectadas: [],
               ejemplos: [],
               recomendaciones: ["Error: No se pudo analizar la conversación. El modelo no proporcionó una respuesta válida."],
+              posible_agresor: "ninguno", // Default value
           }
       };
   }
-  // Make sure the output structure matches AnalyzeConversationOutput
-  // If analysisPrompt's output schema directly matches AnalyzeConversationOutputSchema,
-  // we can return output directly. Otherwise, map it.
-  // Assuming the prompt output schema is directly AnalyzeConversationOutputSchema:
-  return output;
 
-  // If the prompt output schema was slightly different, you might map it like this:
-  // return {
-  //   analysisResult: {
-  //     nivel_riesgo: output.analysisResult.nivel_riesgo,
-  //     categorias_detectadas: output.analysisResult.categorias_detectadas,
-  //     ejemplos: output.analysisResult.ejemplos,
-  //     recomendaciones: output.analysisResult.recomendaciones,
-  //   }
-  // };
+  console.log("Resultado del análisis:", output.analysisResult); // Log output for debugging
+  // Assuming the prompt output schema is directly AnalyzeConversationOutputSchema:
+  return output; // Return the whole output object as defined in schema
 });
+
+    
