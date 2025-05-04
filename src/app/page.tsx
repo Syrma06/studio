@@ -126,7 +126,7 @@ export default function WelcomePage() {
               title="Relaciones Amorosas" // Changed title from Espectro Autista
               description="Analiza la salud emocional de tu relación y detecta señales de manipulación o abuso verbal."
                imageUrl="https://picsum.photos/150/100?random=3"
-               imageHint="support group diverse people"
+               imageHint="toxic relationship couple bound" // Updated hint based on the provided image
             />
             <FeatureCard
               icon={Siren} // Using Siren as a warning sign
