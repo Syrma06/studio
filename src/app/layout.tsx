@@ -18,8 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     // Ensure no whitespace between <html> and <body> tags
-    <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning> {/* Add suppressHydrationWarning for next-themes */}
-      <body className={`antialiased`}>
+    <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning><body className={`antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
