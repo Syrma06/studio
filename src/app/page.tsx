@@ -75,7 +75,7 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon: Icon, title, description, imageUrl, imageHint }: FeatureCardProps) {
   return (
-    <Card className="flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300 hover:bg-secondary"> {/* Added hover:bg-secondary and transition-all */}
+    <Card className="flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300 hover:bg-primary hover:text-primary-foreground group"> {/* Changed hover bg and text, added group */}
       <CardContent className="p-6 flex flex-col items-center">
          {/* Placeholder Image */}
          <Image
@@ -88,7 +88,7 @@ function FeatureCard({ icon: Icon, title, description, imageUrl, imageHint }: Fe
           />
         {/* <Icon className="w-10 h-10 mb-4 text-primary" /> */}
         <CardTitle className="tracking-tight text-lg font-semibold mb-2">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardDescription className="group-hover:text-primary-foreground">{description}</CardDescription> {/* Ensure description text changes color on hover */}
       </CardContent>
     </Card>
   );
