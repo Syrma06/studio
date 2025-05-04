@@ -131,7 +131,7 @@ export default function WelcomePage() {
             <FeatureCard
               icon={Siren} // Using Siren as a warning sign
               title="Relaciones laborales"
-              description="Detectando patrones de manipulación y control."
+              description="Identifica patrones de estrés, manipulación o falta de reconocimiento en el trabajo."
                imageUrl="https://picsum.photos/150/100?random=4"
                imageHint="office conflict stress"
             />
