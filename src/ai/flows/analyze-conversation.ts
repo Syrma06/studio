@@ -76,19 +76,28 @@ export async function analyze(input: AnalyzeConversationInput): Promise<AnalyzeC
 
            if (emailSent) {
              console.log("Correo de emergencia enviado exitosamente.");
-              result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia sobre la situación de riesgo.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+              // Check if the warning is already there before adding
+              if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se intentó notificar"))) {
+                 result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia sobre la situación de riesgo.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+              }
            } else {
              console.error("Fallo al enviar el correo de emergencia (servicio reportó error).");
-              result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia, pero hubo un error en el envío.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+             if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se intentó notificar"))) {
+                 result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia, pero hubo un error en el envío.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+             }
            }
 
       } catch (emailError) {
         console.error("Error CRÍTICO al intentar enviar correo de emergencia:", emailError);
-          result.analysisResult.recomendaciones.push("<strong>**AVISO:** Ocurrió un error inesperado al intentar notificar al contacto de emergencia.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+         if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Ocurrió un error"))) {
+             result.analysisResult.recomendaciones.push("<strong>**AVISO:** Ocurrió un error inesperado al intentar notificar al contacto de emergencia.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+         }
       }
   } else if (result.analysisResult.riesgo_inminente) {
        console.warn(`Alto riesgo detectado para ${input.userData.nombre} ${input.userData.apellido}, pero no se proporcionó un correo de emergencia válido.`);
-        result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se detectó un riesgo alto, pero no proporcionaste un correo de emergencia válido para notificar.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+        if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se detectó un riesgo alto"))) {
+           result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se detectó un riesgo alto, pero no proporcionaste un correo de emergencia válido para notificar.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+        }
   }
 
 
@@ -223,45 +232,65 @@ const analyzeConversationFlow = ai.defineFlow<
 },
 async input => {
   console.log("Analizando con Input:", input); // Log input for debugging
-  const { output } = await analysisPrompt(input); // Calls the prompt defined above, which uses the Genkit instance 'ai'
+  try {
+      const { output } = await analysisPrompt(input); // Calls the prompt defined above, which uses the Genkit instance 'ai'
 
-  if (!output || !output.analysisResult) {
-      console.error("El modelo no devolvió una salida válida o completa.");
-      return {
-          analysisResult: {
-              nivel_riesgo: 0,
-              riesgo_inminente: false,
-              resumen_riesgo: "Error: El modelo no proporcionó una respuesta válida.",
-              categorias_detectadas: [],
-              ejemplos: [],
-              recomendaciones: ["Error: No se pudo analizar la conversación. El modelo no proporcionó una respuesta válida."],
-               posible_agresor: "ninguno",
-               persona_afectada: "ninguno",
-          }
-      };
-  }
+      if (!output || !output.analysisResult) {
+          console.error("El modelo no devolvió una salida válida o completa.");
+          // Return a structured error output matching the schema
+          return {
+              analysisResult: {
+                  nivel_riesgo: 0,
+                  riesgo_inminente: false,
+                  resumen_riesgo: "Error: El modelo no proporcionó una respuesta válida.",
+                  categorias_detectadas: [],
+                  ejemplos: [],
+                  recomendaciones: ["Error: No se pudo analizar la conversación. El modelo no proporcionó una respuesta válida."],
+                  posible_agresor: "ninguno",
+                  persona_afectada: "ninguno",
+              }
+          };
+      }
 
-   // Basic keyword check for imminent risk (redundancy layer)
-   const suicidalKeywords = ["suicidarme", "matarme", "desaparecer", "no quiero vivir", "acabar con todo", "quitarme la vida", "ya no puedo más"];
-   const threatKeywords = ["te voy a matar", "te voy a hacer daño", "voy a lastimarte", "te arrepentirás", "mereces que te pase algo malo"];
-   const conversationLower = input.text.toLowerCase();
+       // Basic keyword check for imminent risk (redundancy layer)
+       const suicidalKeywords = ["suicidarme", "matarme", "desaparecer", "no quiero vivir", "acabar con todo", "quitarme la vida", "ya no puedo más"];
+       const threatKeywords = ["te voy a matar", "te voy a hacer daño", "voy a lastimarte", "te arrepentirás", "mereces que te pase algo malo"];
+       const conversationLower = input.text.toLowerCase();
 
-   let highRiskKeywordDetected = false;
-   if (suicidalKeywords.some(keyword => conversationLower.includes(keyword)) ||
-       threatKeywords.some(keyword => conversationLower.includes(keyword))) {
-       highRiskKeywordDetected = true;
-       if (!output.analysisResult.riesgo_inminente && (conversationLower.includes("te voy a matar") || conversationLower.includes("me voy a matar"))) {
-            console.warn("Palabra clave de riesgo MUY ALTO detectada, pero la IA no marcó riesgo_inminente=true. FORZANDO RIESGO ALTO.");
-            output.analysisResult.riesgo_inminente = true;
-            output.analysisResult.nivel_riesgo = Math.max(output.analysisResult.nivel_riesgo, 95);
-            output.analysisResult.resumen_riesgo = output.analysisResult.resumen_riesgo + " (RIESGO INMINENTE FORZADO POR PALABRA CLAVE EXPLÍCITA)";
-             output.analysisResult.recomendaciones.unshift("**URGENTE:** Se detectó una palabra clave de riesgo crítico. Busca ayuda de emergencia inmediatamente.");
-       } else if (!output.analysisResult.riesgo_inminente) {
-           console.warn("Palabra clave de riesgo detectada, pero la IA no marcó riesgo_inminente=true. Revisar análisis.");
+       let highRiskKeywordDetected = false;
+       if (suicidalKeywords.some(keyword => conversationLower.includes(keyword)) ||
+           threatKeywords.some(keyword => conversationLower.includes(keyword))) {
+           highRiskKeywordDetected = true;
+           if (!output.analysisResult.riesgo_inminente && (conversationLower.includes("te voy a matar") || conversationLower.includes("me voy a matar"))) {
+                console.warn("Palabra clave de riesgo MUY ALTO detectada, pero la IA no marcó riesgo_inminente=true. FORZANDO RIESGO ALTO.");
+                output.analysisResult.riesgo_inminente = true;
+                output.analysisResult.nivel_riesgo = Math.max(output.analysisResult.nivel_riesgo, 95);
+                output.analysisResult.resumen_riesgo = output.analysisResult.resumen_riesgo + " (RIESGO INMINENTE FORZADO POR PALABRA CLAVE EXPLÍCITA)";
+                 output.analysisResult.recomendaciones.unshift("**URGENTE:** Se detectó una palabra clave de riesgo crítico. Busca ayuda de emergencia inmediatamente.");
+           } else if (!output.analysisResult.riesgo_inminente) {
+               console.warn("Palabra clave de riesgo detectada, pero la IA no marcó riesgo_inminente=true. Revisar análisis.");
+           }
        }
-   }
 
 
-  console.log("Resultado del análisis:", output.analysisResult);
-  return output;
+      console.log("Resultado del análisis:", output.analysisResult);
+      return output;
+
+    } catch (error: any) {
+        console.error("Error durante la ejecución del flujo de análisis:", error);
+        // Return a structured error output matching the schema
+         return {
+             analysisResult: {
+                 nivel_riesgo: 0,
+                 riesgo_inminente: false,
+                 resumen_riesgo: `Error interno durante el análisis: ${error.message || 'Error desconocido'}`,
+                 categorias_detectadas: [],
+                 ejemplos: [],
+                 recomendaciones: [`Error: No se pudo completar el análisis debido a un error interno (${error.message || 'Error desconocido'}).`],
+                  posible_agresor: "ninguno",
+                  persona_afectada: "ninguno",
+             }
+         };
+    }
 });
+
