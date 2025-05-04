@@ -124,7 +124,7 @@ export default function WelcomePage() {
             <FeatureCard
               icon={HeartHandshake} // Using HeartHandshake for Autism/Empathy
               title="Relaciones Amorosas" // Changed title from Espectro Autista
-              description="Reconociendo matices emocionales en la comunicación."
+              description="Analiza la salud emocional de tu relación y detecta señales de manipulación o abuso verbal."
                imageUrl="https://picsum.photos/150/100?random=3"
                imageHint="support group diverse people"
             />
