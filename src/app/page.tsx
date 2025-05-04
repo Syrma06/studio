@@ -123,8 +123,8 @@ export default function WelcomePage() {
               icon={Users}
               title="Relaciones Personales"
               description="Identifica señales de estrés y tensiones en tus relaciones cotidianas."
-              imageUrl="https://picsum.photos/150/100?random=1"
-              imageHint="tense conversation friends drawing" // Updated hint
+              imageUrl="https://picsum.photos/150/100?random=5" // Updated random seed
+              imageHint="psychological manipulation mental abuse drawing" // Updated hint
             />
             <FeatureCard
               icon={Home} // Changed icon
@@ -161,3 +161,4 @@ export default function WelcomePage() {
     </main>
   );
 }
+
