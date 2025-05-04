@@ -13,7 +13,7 @@ function HeroSection1() {
           <div className="flex flex-col justify-center space-y-4">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-                💡 Alumbra: Analiza Conversaciones, Detecta Emociones y Señales de Alerta
+               Alumbra: Ponle luz a tus palabras, claridad a tus vínculos
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl">
                 Con una simple acción de copiar y pegar la última conversación, Alumbra podría esbozar un escenario preocupante que indique una señal de advertencia hacia tu salud emocional.
@@ -34,7 +34,7 @@ function HeroSection1() {
                  <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
                  <span className="w-3 h-3 rounded-full bg-green-500"></span>
               </div>
-               <p className="text-xs text-muted-foreground font-mono truncate">Análisis de Ejemplo</p>
+               <p className="text-xs text-muted-foreground font-mono truncate">Análisis</p>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="bg-secondary/50 p-4 rounded-md text-sm text-secondary-foreground">
