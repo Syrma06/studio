@@ -45,14 +45,7 @@ function HeroSection1() {
 
            {/* Right Column: Image and Card */}
            <div className="relative">
-             <Image
-               src="https://picsum.photos/150/100?random=5" // Using picsum placeholder
-               alt="Mujer preocupada mirando el teléfono"
-               width={200}
-               height={200}
-               className="absolute -left-24 -top-16 rounded-full border-4 border-background shadow-lg z-10 hidden lg:block"
-               data-ai-hint="concerned woman phone" // Added AI hint
-             />
+             {/* Removed the absolute positioned image */}
               <Card className="relative bg-card shadow-lg rounded-lg overflow-hidden ml-0 lg:ml-12 mt-12 lg:mt-0">
                 <CardHeader className="bg-muted/30 p-4 flex flex-row items-center space-x-2">
                   <div className="flex space-x-1.5">
