@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Email sending service using SendGrid.
  *
@@ -43,12 +44,14 @@ export async function sendEmergencyEmail(payload: EmergencyEmailPayload): Promis
   }
 
   const formattedDetailsHtml = formatAnalysisDetailsForHtmlEmail(payload.analysisDetails);
+  const formattedDetailsText = formatAnalysisDetailsForTextEmail(payload.analysisDetails);
+
 
   const msg = {
     to: payload.to,
     from: FROM_EMAIL, // Use the verified sender email from environment variable
     subject: `Alerta Urgente de Alumbra sobre ${payload.userName}`,
-    text: `Hola,\n\nEste es un mensaje automático de Alumbra.\n\nSe ha detectado una situación de riesgo potencialmente grave para ${payload.userName} basada en un análisis de conversación reciente.\n\nResumen del Riesgo: ${payload.riskSummary}\n\nSe recomienda contactar a ${payload.userName} y considerar buscar ayuda profesional urgentemente.\n\nDetalles del Análisis:\n${formatAnalysisDetailsForTextEmail(payload.analysisDetails)}\n\nAtentamente,\nEl equipo de Alumbra`,
+    text: `Hola,\n\nEste es un mensaje automático de Alumbra.\n\nSe ha detectado una situación de riesgo potencialmente grave para ${payload.userName} basada en un análisis de conversación reciente.\n\nResumen del Riesgo: ${payload.riskSummary}\n\nSe recomienda contactar a ${payload.userName} y considerar buscar ayuda profesional urgentemente.\n\nDetalles del Análisis:\n${formattedDetailsText}\n\nAtentamente,\nEl equipo de Alumbra`,
     html: `
       <p>Hola,</p>
       <p>Este es un mensaje automático de <strong>Alumbra</strong>.</p>
@@ -89,26 +92,28 @@ export async function sendEmergencyEmail(payload: EmergencyEmailPayload): Promis
  * @returns An HTML string representation of the key analysis details.
  */
 function formatAnalysisDetailsForHtmlEmail(details: AnalysisResult): string {
-   let html = `<p><strong>Nivel de Riesgo:</strong> ${details.nivel_riesgo}/100</p>`;
-   html += `<p><strong>Riesgo Inminente Detectado:</strong> ${details.riesgo_inminente ? '<strong>Sí</strong>' : 'No'}</p>`;
-   html += `<p><strong>Posible Origen:</strong> ${details.posible_agresor}</p>`;
-   html += `<p><strong>Persona Afectada Principalmente:</strong> ${details.persona_afectada}</p>`;
+    const affectedPersonDisplay = getAffectedPersonDisplayText(details.persona_afectada, details.nombre_interlocutor);
+    let html = `<p><strong>Nivel de Riesgo:</strong> ${details.nivel_riesgo}/100</p>`;
+    html += `<p><strong>Riesgo Inminente Detectado:</strong> ${details.riesgo_inminente ? '<strong>Sí</strong>' : 'No'}</p>`;
+    html += `<p><strong>Posible Origen:</strong> ${details.posible_agresor}</p>`;
+    html += `<p><strong>Persona Afectada Principalmente:</strong> ${affectedPersonDisplay}</p>`;
 
-   if (details.categorias_detectadas.length > 0) {
-     html += `<p><strong>Categorías Detectadas:</strong> ${details.categorias_detectadas.map(c => `<span style="background-color: #eee; padding: 2px 5px; border-radius: 3px; margin-right: 5px;">${c}</span>`).join(' ')}</p>`;
-   }
+
+    if (details.categorias_detectadas.length > 0) {
+        html += `<p><strong>Categorías Detectadas:</strong> ${details.categorias_detectadas.map(c => `<span style="background-color: #eee; padding: 2px 5px; border-radius: 3px; margin-right: 5px;">${c}</span>`).join(' ')}</p>`;
+    }
     if (details.ejemplos.length > 0) {
-      html += `<p><strong>Ejemplos Problemáticos Clave:</strong></p><ul>${details.ejemplos.slice(0, 5).map((ex: string) => `<li><em>"${ex}"</em></li>`).join('')}</ul>`; // Show first few examples
+        html += `<p><strong>Ejemplos Problemáticos Clave:</strong></p><ul>${details.ejemplos.slice(0, 5).map((ex: string) => `<li><em>"${ex}"</em></li>`).join('')}</ul>`; // Show first few examples
     }
     if (details.recomendaciones.length > 0) {
-      // Prioritize imminent risk recommendations if present
-      const recsToShow = details.riesgo_inminente
-        ? details.recomendaciones.filter(rec => rec.toLowerCase().includes("urgente") || rec.toLowerCase().includes("seguridad"))
-        : details.recomendaciones;
+        // Prioritize imminent risk recommendations if present
+        const recsToShow = details.riesgo_inminente
+            ? details.recomendaciones.filter(rec => rec.toLowerCase().includes("urgente") || rec.toLowerCase().includes("seguridad"))
+            : details.recomendaciones;
 
-      html += `<p><strong>Recomendaciones Clave:</strong></p><ul>${recsToShow.slice(0, 3).map((rec: string) => `<li>${rec.substring(0, 250)}${rec.length > 250 ? '...' : ''}</li>`).join('')}</ul>`; // Show first few recommendations briefly
+        html += `<p><strong>Recomendaciones Clave:</strong></p><ul>${recsToShow.slice(0, 3).map((rec: string) => `<li>${rec.substring(0, 250)}${rec.length > 250 ? '...' : ''}</li>`).join('')}</ul>`; // Show first few recommendations briefly
     }
-   return html;
+    return html;
 }
 
 /**
@@ -117,22 +122,46 @@ function formatAnalysisDetailsForHtmlEmail(details: AnalysisResult): string {
  * @returns A plain text string representation of the key analysis details.
  */
 function formatAnalysisDetailsForTextEmail(details: AnalysisResult): string {
-   let text = `Nivel de Riesgo: ${details.nivel_riesgo}/100\n`;
-   text += `Riesgo Inminente Detectado: ${details.riesgo_inminente ? 'Sí' : 'No'}\n`;
+    const affectedPersonDisplay = getAffectedPersonDisplayText(details.persona_afectada, details.nombre_interlocutor);
+    let text = `Nivel de Riesgo: ${details.nivel_riesgo}/100\n`;
+    text += `Riesgo Inminente Detectado: ${details.riesgo_inminente ? 'Sí' : 'No'}\n`;
     text += `Posible Origen: ${details.posible_agresor}\n`;
-    text += `Persona Afectada Principalmente: ${details.persona_afectada}\n`;
+    text += `Persona Afectada Principalmente: ${affectedPersonDisplay}\n`;
 
-   if (details.categorias_detectadas.length > 0) {
-     text += `Categorías Detectadas: ${details.categorias_detectadas.join(', ')}\n`;
-   }
+    if (details.categorias_detectadas.length > 0) {
+        text += `Categorías Detectadas: ${details.categorias_detectadas.join(', ')}\n`;
+    }
     if (details.ejemplos.length > 0) {
-      text += `Ejemplos Problemáticos Clave:\n${details.ejemplos.slice(0, 5).map((ex: string) => `- "${ex}"`).join('\n')}\n`;
+        text += `Ejemplos Problemáticos Clave:\n${details.ejemplos.slice(0, 5).map((ex: string) => `- "${ex}"`).join('\n')}\n`;
     }
     if (details.recomendaciones.length > 0) {
         const recsToShow = details.riesgo_inminente
             ? details.recomendaciones.filter(rec => rec.toLowerCase().includes("urgente") || rec.toLowerCase().includes("seguridad"))
             : details.recomendaciones;
-      text += `Recomendaciones Clave:\n${recsToShow.slice(0, 3).map((rec: string) => `- ${rec.substring(0, 250)}${rec.length > 250 ? '...' : ''}`).join('\n')}\n`;
+        text += `Recomendaciones Clave:\n${recsToShow.slice(0, 3).map((rec: string) => `- ${rec.substring(0, 250)}${rec.length > 250 ? '...' : ''}`).join('\n')}\n`;
     }
-   return text;
+    return text;
 }
+
+/**
+ * Helper function to get display text for the affected person.
+ * @param affectedType - The type of affected person.
+ * @param interlocutorName - The name of the interlocutor, if available.
+ * @returns A display string for the affected person.
+ */
+function getAffectedPersonDisplayText(affectedType: AnalysisResult['persona_afectada'], interlocutorName?: string): string {
+    switch (affectedType) {
+        case 'usuario':
+            return 'El usuario que proporcionó la conversación';
+        case 'interlocutor':
+            return interlocutorName ? interlocutorName : 'La otra persona';
+        case 'ambos':
+            return 'Ambas partes';
+        case 'grupo':
+            return 'Miembros del grupo';
+        case 'ninguno':
+        default:
+            return 'Ninguno identificado claramente';
+    }
+}
+```

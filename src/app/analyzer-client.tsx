@@ -355,20 +355,23 @@ export default function AnalyzerClient() {
    };
 
     // Helper function to get icon and tooltip based on affected person type
-    const getAffectedInfo = (affectedType: AnalysisResult['persona_afectada'], userName: string | undefined) => {
-        const name = userName || "Usuario"; // Fallback name
+    // Added interlocutorName parameter
+    const getAffectedInfo = (affectedType: AnalysisResult['persona_afectada'], userName: string | undefined, interlocutorName: string | undefined) => {
+        const uName = userName || "Usuario"; // Fallback name for user
+        const iName = interlocutorName || "La otra persona"; // Fallback or identified name for interlocutor
+
         switch (affectedType) {
             case 'usuario':
                 return {
                     icon: UserMinus, // Icon indicating 'self' affected
-                    tooltip: `El análisis sugiere que TÚ (${name}) eres la principal persona afectada.`,
-                    label: `Tú (${name})`
+                    tooltip: `El análisis sugiere que TÚ (${uName}) eres la principal persona afectada.`,
+                    label: `Tú (${uName})`
                 };
             case 'interlocutor':
                 return {
                     icon: Target, // Icon indicating 'other' affected
-                    tooltip: 'El análisis sugiere que la OTRA PERSONA es la principal afectada.',
-                    label: 'La otra persona'
+                    tooltip: `El análisis sugiere que ${iName} es la principal persona afectada.`,
+                    label: iName // Use the identified or fallback name
                 };
             case 'ambos':
                 return {
@@ -586,14 +589,15 @@ export default function AnalyzerClient() {
                            <Tooltip>
                               <TooltipTrigger asChild>
                                 <span> {/* Wrap icon in span for TooltipTrigger */}
-                                   {React.createElement(getAffectedInfo(analysisResult.persona_afectada, userData?.nombre).icon, { className: "h-5 w-5 text-muted-foreground" })}
+                                    {/* Pass user name and interlocutor name to getAffectedInfo */}
+                                   {React.createElement(getAffectedInfo(analysisResult.persona_afectada, userData?.nombre, analysisResult.nombre_interlocutor).icon, { className: "h-5 w-5 text-muted-foreground" })}
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{getAffectedInfo(analysisResult.persona_afectada, userData?.nombre).tooltip}</p>
+                                <p>{getAffectedInfo(analysisResult.persona_afectada, userData?.nombre, analysisResult.nombre_interlocutor).tooltip}</p>
                               </TooltipContent>
                            </Tooltip>
-                           <span className="text-sm text-foreground">{getAffectedInfo(analysisResult.persona_afectada, userData?.nombre).label}</span>
+                           <span className="text-sm text-foreground">{getAffectedInfo(analysisResult.persona_afectada, userData?.nombre, analysisResult.nombre_interlocutor).label}</span>
                         </div>
                     </div>
                  </div>
@@ -672,3 +676,4 @@ export default function AnalyzerClient() {
   );
 }
 
+```
