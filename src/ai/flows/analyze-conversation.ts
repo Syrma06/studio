@@ -85,7 +85,9 @@ export async function analyze(input: AnalyzeConversationInput): Promise<AnalyzeC
            } else {
              console.error("Fallo al enviar el correo de emergencia SendGrid (servicio reportó error).");
              if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se intentó notificar"))) {
-                 result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia (riesgo inminente), pero hubo un error en el envío con SendGrid.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+                // Modified message - Suggest checking spam instead of reporting an error.
+                const spamWarning = "<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia (riesgo inminente), pero el envío falló.</strong> Verifica la carpeta de spam de tu contacto y considera buscar ayuda profesional o de emergencia inmediatamente.";
+                result.analysisResult.recomendaciones.push(spamWarning);
              }
            }
 
@@ -345,7 +347,3 @@ async input => {
          };
     }
 });
-
-
-
-    
