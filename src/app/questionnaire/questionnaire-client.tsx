@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
-import Link from "next/link"; // Import Link for triggering dialog
+// Removed Link import as it's not used for triggering dialog anymore
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel as RHFFormLabel, Form
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label"; // Using standard Label for radio items
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose, DialogTrigger } from "@/components/ui/dialog"; // Added DialogTrigger
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"; // Removed DialogTrigger from here
 import { ScrollArea } from "@/components/ui/scroll-area"; // Import ScrollArea
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
@@ -307,11 +307,14 @@ export default function QuestionnaireClient() {
                       <div className="space-y-1 leading-none">
                         <RHFFormLabel>
                           He leído y acepto los{" "}
-                          <DialogTrigger asChild>
-                              <Button variant="link" className="p-0 h-auto text-primary underline" onClick={(e) => {e.preventDefault(); setIsTermsDialogOpen(true);}}>
-                                  Términos y Condiciones
-                              </Button>
-                          </DialogTrigger>
+                          {/* Remove DialogTrigger wrapper, use Button directly */}
+                          <Button
+                              variant="link"
+                              type="button" // Prevent form submission
+                              className="p-0 h-auto text-primary underline"
+                              onClick={(e) => {e.preventDefault(); setIsTermsDialogOpen(true);}}>
+                                Términos y Condiciones
+                          </Button>
                           .
                         </RHFFormLabel>
                         <FormMessage />
