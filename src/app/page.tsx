@@ -110,7 +110,7 @@ export default function WelcomePage() {
             <FeatureCard
               icon={Users}
               title="Relaciones Personales"
-              description="Ayudando a identificar el estrés en relaciones."
+              description="Identifica señales de estrés y tensiones en tus relaciones cotidianas."
               imageUrl="https://picsum.photos/150/100?random=1"
               imageHint="student group study"
             />
