@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -18,11 +19,12 @@ import { Label } from "@/components/ui/label"; // Import standard Label
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+// Removed Dialog imports as it's no longer used here
+// import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+// Removed Input import as it's no longer used here
+// import { Input } from "@/components/ui/input";
 import { Loader2, AlertCircle, Terminal, Download, ArrowLeft } from "lucide-react"; // Added ArrowLeft
 import { Skeleton } from '@/components/ui/skeleton';
-// Removed duplicate import of useFormField hook
 
 const ConversationFormSchema = z.object({
   conversationText: z.string().min(10, {
@@ -30,11 +32,12 @@ const ConversationFormSchema = z.object({
   }),
 });
 
-const DownloadFormSchema = z.object({
-    nombre: z.string().min(1, { message: "El nombre es obligatorio." }),
-    apellido: z.string().min(1, { message: "El apellido es obligatorio." }),
-    edad: z.coerce.number().int().min(1, { message: "La edad debe ser un número positivo." }).max(120, { message: "Edad inválida." }),
-});
+// Define the shape of the user data we expect from localStorage
+interface UserData {
+    nombre: string;
+    apellido: string;
+    edad: number;
+}
 
 
 export default function AnalyzerClient() {
@@ -42,10 +45,33 @@ export default function AnalyzerClient() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [isDownloadDialogOpen, setIsDownloadDialogOpen] = React.useState(false);
+  // Removed isDownloadDialogOpen state
+  // const [isDownloadDialogOpen, setIsDownloadDialogOpen] = React.useState(false);
+  const [userData, setUserData] = React.useState<UserData | null>(null); // State to hold user data
   const analysisResultCardRef = React.useRef<HTMLDivElement>(null);
   const { toast } = useToast(); // Initialize useToast
   const router = useRouter(); // Initialize useRouter
+
+  // Fetch user data from localStorage when the component mounts
+  React.useEffect(() => {
+    try {
+      const storedData = localStorage.getItem('alumbraUserData');
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        // Basic validation (you might want more robust validation)
+        if (parsedData && typeof parsedData.nombre === 'string' && typeof parsedData.apellido === 'string' && typeof parsedData.edad === 'number') {
+            setUserData(parsedData);
+        } else {
+            console.warn("Stored user data is invalid or incomplete.");
+            // Optionally clear invalid data
+            // localStorage.removeItem('alumbraUserData');
+        }
+      }
+    } catch (e) {
+      console.error("Failed to read user data from localStorage", e);
+    }
+  }, []); // Empty dependency array ensures this runs only once on mount
+
 
   const conversationForm = useForm<z.infer<typeof ConversationFormSchema>>({
     resolver: zodResolver(ConversationFormSchema),
@@ -54,14 +80,7 @@ export default function AnalyzerClient() {
     },
   });
 
-  const downloadForm = useForm<z.infer<typeof DownloadFormSchema>>({
-    resolver: zodResolver(DownloadFormSchema),
-    defaultValues: {
-        nombre: "",
-        apellido: "",
-        edad: undefined, // Use undefined for number input default
-    },
-  });
+  // Removed downloadForm as data is fetched from localStorage
 
   async function onConversationSubmit(data: z.infer<typeof ConversationFormSchema>) {
     setIsLoading(true);
@@ -86,7 +105,7 @@ export default function AnalyzerClient() {
     }
   }
 
-  const generateDownload = async (userData: z.infer<typeof DownloadFormSchema>) => {
+  const generateDownload = async () => { // Removed userData parameter
     if (!analysisResultCardRef.current || !analysisResult) {
         toast({
             variant: "destructive",
@@ -95,6 +114,16 @@ export default function AnalyzerClient() {
         });
         return;
     }
+    // Check if user data is available
+    if (!userData) {
+        toast({
+            variant: "destructive",
+            title: "Error de Descarga",
+            description: "No se encontraron los datos del usuario. Vuelve al cuestionario.",
+        });
+        return;
+    }
+
     setIsDownloading(true);
 
     let userInfoElement: HTMLDivElement | null = null; // Declare outside try block
@@ -160,8 +189,7 @@ export default function AnalyzerClient() {
             title: "Descarga Completa",
             description: "El análisis Alumbra se ha descargado como imagen.", // Changed description
         });
-        setIsDownloadDialogOpen(false); // Close dialog on success
-        downloadForm.reset(); // Reset download form
+        // Removed setIsDownloadDialogOpen and downloadForm.reset()
 
     } catch (err) {
         console.error("Error al generar la descarga:", err);
@@ -346,88 +374,26 @@ export default function AnalyzerClient() {
              )}
           </CardContent>
           <CardFooter className="flex justify-end">
-             {/* Download Button Trigger */}
-             <Dialog open={isDownloadDialogOpen} onOpenChange={setIsDownloadDialogOpen}>
-                 <DialogTrigger asChild>
-                     <Button variant="outline">
-                         <Download className="mr-2 h-4 w-4" />
-                         Descargar Análisis
-                     </Button>
-                 </DialogTrigger>
-                 <DialogContent className="sm:max-w-[425px]">
-                     <DialogHeader>
-                         <DialogTitle>Descargar Análisis Alumbra</DialogTitle> {/* Changed title */}
-                         <DialogDescription>
-                             Ingresa tus datos para incluir en la descarga. La imagen se guardará localmente.
-                         </DialogDescription>
-                     </DialogHeader>
-                     {/* Wrap download form with FormProvider */}
-                     <FormProvider {...downloadForm}>
-                         <Form {...downloadForm}>
-                             <form onSubmit={downloadForm.handleSubmit(generateDownload)} className="grid gap-4 py-4">
-                                 <FormField
-                                     control={downloadForm.control}
-                                     name="nombre"
-                                     render={({ field }) => (
-                                         <FormItem className="grid grid-cols-4 items-center gap-4">
-                                             {/* Use RHFFormLabel here */}
-                                             <RHFFormLabel className="text-right">Nombre</RHFFormLabel>
-                                             <FormControl>
-                                                 <Input {...field} className="col-span-3" aria-label="Nombre" />
-                                             </FormControl>
-                                             <FormMessage className="col-span-4 text-right" />
-                                         </FormItem>
-                                     )}
-                                 />
-                                 <FormField
-                                     control={downloadForm.control}
-                                     name="apellido"
-                                     render={({ field }) => (
-                                         <FormItem className="grid grid-cols-4 items-center gap-4">
-                                              {/* Use RHFFormLabel here */}
-                                             <RHFFormLabel className="text-right">Apellido</RHFFormLabel>
-                                             <FormControl>
-                                                 <Input {...field} className="col-span-3" aria-label="Apellido" />
-                                             </FormControl>
-                                              <FormMessage className="col-span-4 text-right" />
-                                         </FormItem>
-                                     )}
-                                 />
-                                  <FormField
-                                     control={downloadForm.control}
-                                     name="edad"
-                                     render={({ field }) => (
-                                         <FormItem className="grid grid-cols-4 items-center gap-4">
-                                              {/* Use RHFFormLabel here */}
-                                             <RHFFormLabel className="text-right">Edad</RHFFormLabel>
-                                             <FormControl>
-                                                {/* Ensure type="number" */}
-                                                 <Input {...field} type="number" className="col-span-3 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" aria-label="Edad" value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}/>
-                                             </FormControl>
-                                             <FormMessage className="col-span-4 text-right" />
-                                         </FormItem>
-                                     )}
-                                 />
-                                 <DialogFooter>
-                                     <DialogClose asChild>
-                                        <Button type="button" variant="outline">Cancelar</Button>
-                                     </DialogClose>
-                                     <Button type="submit" disabled={isDownloading}>
-                                         {isDownloading ? (
-                                             <>
-                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                 Descargando...
-                                             </>
-                                         ) : (
-                                             "Confirmar y Descargar"
-                                         )}
-                                     </Button>
-                                 </DialogFooter>
-                             </form>
-                         </Form>
-                     </FormProvider>
-                 </DialogContent>
-             </Dialog>
+             {/* Direct Download Button */}
+             <Button
+                variant="outline"
+                onClick={generateDownload}
+                disabled={isDownloading || !userData} // Disable if downloading or no user data
+                title={!userData ? "Completa el cuestionario primero para descargar" : ""} // Tooltip if disabled
+              >
+                 {isDownloading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Descargando...
+                    </>
+                  ) : (
+                     <>
+                       <Download className="mr-2 h-4 w-4" />
+                       Descargar Análisis
+                     </>
+                   )}
+             </Button>
+             {/* Removed Dialog structure */}
           </CardFooter>
         </Card>
       )}
