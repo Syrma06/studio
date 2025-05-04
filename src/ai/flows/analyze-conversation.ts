@@ -4,7 +4,7 @@
 /**
  * @fileOverview Analiza una conversación en busca de abuso emocional, manipulación y riesgo inminente utilizando IA.
  *
- * - analyze - Una función que invoca el flujo de análisis de conversación y maneja la notificación de emergencia.
+ * - analyze - Una función que invoca el flujo de análisis de conversación y maneja la notificación de emergencia y alerta por webhook.
  * - AnalyzeConversationInput - El tipo de entrada para la función analyze.
  * - AnalyzeConversationOutput - El tipo de retorno para la función analyze.
  */
@@ -56,15 +56,17 @@ const AnalyzeConversationOutputSchema = z.object({
 });
 export type AnalyzeConversationOutput = z.infer<typeof AnalyzeConversationOutputSchema>;
 
+const WEBHOOK_URL = 'https://hook.us2.make.com/hc4b629inmphkbgu43ns56jbqk5yaqi3';
+
 
 export async function analyze(input: AnalyzeConversationInput): Promise<AnalyzeConversationOutput> {
   const result = await analyzeConversationFlow(input);
 
-  // --- Emergency Email Logic ---
+  // --- Emergency Email Logic (SendGrid) ---
   const isValidEmail = input.userData?.emailEmergencia && input.userData.emailEmergencia.includes('@');
 
   if (result.analysisResult.riesgo_inminente && isValidEmail) {
-      console.log(`Alto riesgo detectado para ${input.userData.nombre} ${input.userData.apellido}. Intentando notificar a ${input.userData.emailEmergencia}.`);
+      console.log(`Alto riesgo detectado para ${input.userData.nombre} ${input.userData.apellido}. Intentando notificar a ${input.userData.emailEmergencia} vía SendGrid.`);
 
       try {
            const emailSent = await sendEmergencyEmail({
@@ -75,28 +77,78 @@ export async function analyze(input: AnalyzeConversationInput): Promise<AnalyzeC
            });
 
            if (emailSent) {
-             console.log("Correo de emergencia enviado exitosamente.");
+             console.log("Correo de emergencia SendGrid enviado exitosamente.");
               // Check if the warning is already there before adding
               if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se intentó notificar"))) {
-                 result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia sobre la situación de riesgo.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+                 result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia sobre la situación de riesgo inminente.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
               }
            } else {
-             console.error("Fallo al enviar el correo de emergencia (servicio reportó error).");
+             console.error("Fallo al enviar el correo de emergencia SendGrid (servicio reportó error).");
              if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se intentó notificar"))) {
-                 result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia, pero hubo un error en el envío.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+                 result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia (riesgo inminente), pero hubo un error en el envío con SendGrid.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
              }
            }
 
       } catch (emailError) {
-        console.error("Error CRÍTICO al intentar enviar correo de emergencia:", emailError);
+        console.error("Error CRÍTICO al intentar enviar correo de emergencia SendGrid:", emailError);
          if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Ocurrió un error"))) {
-             result.analysisResult.recomendaciones.push("<strong>**AVISO:** Ocurrió un error inesperado al intentar notificar al contacto de emergencia.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+             result.analysisResult.recomendaciones.push("<strong>**AVISO:** Ocurrió un error inesperado al intentar notificar al contacto de emergencia (riesgo inminente) vía SendGrid.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
          }
       }
   } else if (result.analysisResult.riesgo_inminente) {
-       console.warn(`Alto riesgo detectado para ${input.userData.nombre} ${input.userData.apellido}, pero no se proporcionó un correo de emergencia válido.`);
+       console.warn(`Alto riesgo inminente detectado para ${input.userData.nombre} ${input.userData.apellido}, pero no se proporcionó un correo de emergencia válido para SendGrid.`);
         if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se detectó un riesgo alto"))) {
-           result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se detectó un riesgo alto, pero no proporcionaste un correo de emergencia válido para notificar.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+           result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se detectó un riesgo INMINENTE, pero no proporcionaste un correo de emergencia válido para notificar.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
+        }
+  }
+
+  // --- High Risk Alert (Webhook) ---
+  if (result.analysisResult.nivel_riesgo > 85 && isValidEmail) {
+      console.log(`Nivel de riesgo > 85 (${result.analysisResult.nivel_riesgo}) detectado para ${input.userData.nombre} ${input.userData.apellido}. Intentando notificar a ${input.userData.emailEmergencia} vía Webhook.`);
+
+      try {
+          const webhookPayload = {
+              emailTo: input.userData.emailEmergencia,
+              userName: `${input.userData.nombre} ${input.userData.apellido}`,
+              riskLevel: result.analysisResult.nivel_riesgo,
+              riskSummary: result.analysisResult.resumen_riesgo,
+              isImminent: result.analysisResult.riesgo_inminente,
+              // Optionally include more details if needed by the webhook
+              // categories: result.analysisResult.categorias_detectadas,
+              // examples: result.analysisResult.ejemplos.slice(0, 3), // Send first few examples
+          };
+
+          const response = await fetch(WEBHOOK_URL, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(webhookPayload),
+          });
+
+          if (response.ok) {
+              const responseData = await response.text(); // Or response.json() if it returns JSON
+              console.log("Webhook notificación enviada exitosamente. Respuesta:", responseData);
+               // Add recommendation only if not imminent risk (avoid duplicate messages if both trigger)
+               if (!result.analysisResult.riesgo_inminente && !result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se envió una alerta"))) {
+                   result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se envió una alerta a tu contacto de emergencia debido al nivel de riesgo detectado.</strong> Considera buscar apoyo adicional.");
+               }
+          } else {
+              console.error(`Fallo al enviar notificación webhook: ${response.status} ${response.statusText}`);
+              if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se intentó enviar una alerta"))) {
+                   result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó enviar una alerta a tu contacto de emergencia (riesgo > 85), pero hubo un error con el webhook.</strong> Considera buscar apoyo adicional.");
+              }
+          }
+      } catch (webhookError) {
+          console.error("Error CRÍTICO al intentar enviar notificación webhook:", webhookError);
+           if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Ocurrió un error"))) {
+               result.analysisResult.recomendaciones.push("<strong>**AVISO:** Ocurrió un error inesperado al intentar alertar al contacto de emergencia (riesgo > 85) vía webhook.</strong> Considera buscar apoyo adicional.");
+           }
+      }
+  } else if (result.analysisResult.nivel_riesgo > 85) {
+       console.warn(`Nivel de riesgo > 85 (${result.analysisResult.nivel_riesgo}) detectado para ${input.userData.nombre} ${input.userData.apellido}, pero no se proporcionó un correo de emergencia válido para webhook.`);
+        if (!result.analysisResult.recomendaciones.some(rec => rec.includes("AVISO:** Se detectó un riesgo alto"))) {
+           result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se detectó un nivel de riesgo alto (>85), pero no proporcionaste un correo de emergencia válido para alertar.</strong> Considera buscar apoyo adicional.");
         }
   }
 
@@ -294,3 +346,6 @@ async input => {
     }
 });
 
+
+
+    
