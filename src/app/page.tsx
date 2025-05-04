@@ -16,10 +16,10 @@ function HeroSection1() {
           <div className="flex flex-col justify-center space-y-4">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-                {/* Wrap "Alumbra" with AnimatedShinyText and apply yellow gradient */}
+                {/* Wrap "Alumbra" with AnimatedShinyText and apply dark blue gradient */}
                 <AnimatedShinyText
                   className={cn(
-                    `inline animate-gradient bg-gradient-to-r from-[#FDE68A] via-[#FBBF24] to-[#FDE68A] bg-[length:var(--shimmer-width)_100%] bg-clip-text text-transparent`, // Yellow gradient
+                    `inline animate-gradient bg-gradient-to-r from-[#00008B]/50 via-[#00008B] to-[#00008B]/50 bg-[length:var(--shimmer-width)_100%] bg-clip-text text-transparent`, // Dark Blue gradient #00008B
                   )}
                 >
                     Alumbra
