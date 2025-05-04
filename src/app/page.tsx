@@ -38,9 +38,9 @@ function HeroSection1() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="bg-secondary/50 p-4 rounded-md text-sm text-secondary-foreground">
-                <p>"Eres estúpido, ¿Cómo pudiste hacer eso? ¡Eres un idiota!"</p>
-                <p>"Cálmate, fue un error..."</p>
-                <p>"¡Un error! Siempre arruinas todo. No sirves para nada."</p>
+                 <p>"Eres estúpido, ¿Cómo pudiste hacer eso? ¡Eres un idiota!"</p>
+                 <p>"Cálmate, fue un error..."</p>
+                 <p>"¡Un error! Siempre arruinas todo. No sirves para nada."</p>
               </div>
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-muted-foreground">Estado Emocional</h3>
@@ -75,7 +75,7 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon: Icon, title, description, imageUrl, imageHint }: FeatureCardProps) {
   return (
-    <Card className="flex flex-col items-center text-center shadow-sm hover:shadow-md transition-shadow duration-200">
+    <Card className="flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300 hover:bg-secondary"> {/* Added hover:bg-secondary and transition-all */}
       <CardContent className="p-6 flex flex-col items-center">
          {/* Placeholder Image */}
          <Image
@@ -101,7 +101,7 @@ export default function WelcomePage() {
       <HeroSection1 />
 
       {/* Features Section */}
-      <section className="w-full py-12 md:py-20 lg:py-24 bg-secondary/30">
+      <section className="w-full py-12 md:py-20 lg:py-24 bg-muted/30"> {/* Changed background to muted */}
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold tracking-tighter text-center mb-10 sm:text-4xl md:text-5xl text-primary">
             ¿Para Quién es Alumbra?
