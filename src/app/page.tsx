@@ -38,7 +38,7 @@ function HeroSection1() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="bg-secondary/50 p-4 rounded-md text-sm text-secondary-foreground">
-                <p>"Eres estúpido, ¿Cómo pudiste hacer eso? ¡Eres un/una idiota!"</p>
+                <p>"Eres estúpido, ¿Cómo pudiste hacer eso? ¡Eres un idiota!"</p>
                 <p>"Cálmate, fue un error..."</p>
                 <p>"¡Un error! Siempre arruinas todo. No sirves para nada."</p>
               </div>
