@@ -130,10 +130,10 @@ export default function WelcomePage() {
             />
             <FeatureCard
               icon={Siren} // Using Siren as a warning sign
-              title="Relaciones Tóxicas"
+              title="Relaciones laborales"
               description="Detectando patrones de manipulación y control."
                imageUrl="https://picsum.photos/150/100?random=4"
-               imageHint="couple arguing conflict"
+               imageHint="office conflict stress"
             />
           </div>
         </div>
