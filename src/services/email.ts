@@ -1,72 +1,138 @@
-
 /**
- * @fileOverview Placeholder for email sending service.
+ * @fileOverview Email sending service using SendGrid.
  *
- * This file should contain the actual implementation for sending emails,
- * for example, using Nodemailer, SendGrid, Resend, or Firebase Functions with an email extension.
- * The current implementation just logs to the console.
+ * This file implements the email sending functionality for emergency notifications.
  */
 
 'use server'; // Mark this module for server-side execution
+
+import sgMail from '@sendgrid/mail';
+import type { AnalysisResult } from './shadai'; // Assuming AnalysisResult is here
+
+// Configure SendGrid API Key from environment variable
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log("SendGrid API Key configured.");
+} else {
+  console.warn("SENDGRID_API_KEY environment variable not set. Email sending will fail.");
+}
+
+const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL;
 
 interface EmergencyEmailPayload {
   to: string;
   userName: string;
   riskSummary: string;
-  analysisDetails: any; // Replace 'any' with a more specific type for formatted analysis details or image data URI
+  analysisDetails: AnalysisResult; // Use the actual AnalysisResult type
 }
 
 /**
- * Sends an emergency notification email.
+ * Sends an emergency notification email using SendGrid.
  *
- * **IMPORTANT:** This is a placeholder function. Replace the console log
- * with your actual email sending logic using a service like Nodemailer,
- * SendGrid, Resend, or a Firebase Cloud Function.
- *
- * @param payload - The email payload.
- * @returns A promise that resolves to true if the email was sent (or simulated successfully), false otherwise.
+ * @param payload - The email payload containing recipient, user info, and analysis details.
+ * @returns A promise that resolves to true if the email was sent successfully, false otherwise.
  */
 export async function sendEmergencyEmail(payload: EmergencyEmailPayload): Promise<boolean> {
-  console.log("--- SIMULATING EMERGENCY EMAIL ---");
-  console.log(`To: ${payload.to}`);
-  console.log(`Subject: Alerta Urgente de Alumbra sobre ${payload.userName}`);
-  console.log(`Body:
-Hola,
+  if (!process.env.SENDGRID_API_KEY) {
+    console.error("SendGrid API Key is not configured. Cannot send email.");
+    return false;
+  }
+   if (!FROM_EMAIL) {
+    console.error("SENDGRID_FROM_EMAIL environment variable not set. Cannot send email.");
+    return false;
+  }
 
-Este es un mensaje automático de Alumbra.
+  const formattedDetailsHtml = formatAnalysisDetailsForHtmlEmail(payload.analysisDetails);
 
-Se ha detectado una situación de riesgo potencialmente grave para ${payload.userName} basada en un análisis de conversación reciente.
+  const msg = {
+    to: payload.to,
+    from: FROM_EMAIL, // Use the verified sender email from environment variable
+    subject: `Alerta Urgente de Alumbra sobre ${payload.userName}`,
+    text: `Hola,\n\nEste es un mensaje automático de Alumbra.\n\nSe ha detectado una situación de riesgo potencialmente grave para ${payload.userName} basada en un análisis de conversación reciente.\n\nResumen del Riesgo: ${payload.riskSummary}\n\nSe recomienda contactar a ${payload.userName} y considerar buscar ayuda profesional urgentemente.\n\nDetalles del Análisis:\n${formatAnalysisDetailsForTextEmail(payload.analysisDetails)}\n\nAtentamente,\nEl equipo de Alumbra`,
+    html: `
+      <p>Hola,</p>
+      <p>Este es un mensaje automático de <strong>Alumbra</strong>.</p>
+      <p>Se ha detectado una situación de <strong>riesgo potencialmente grave para ${payload.userName}</strong> basada en un análisis de conversación reciente.</p>
+      <hr>
+      <h3>Resumen del Riesgo:</h3>
+      <p style="color: red; font-weight: bold;">${payload.riskSummary}</p>
+      <hr>
+      <h3>Detalles del Análisis:</h3>
+      ${formattedDetailsHtml}
+      <hr>
+      <p>Se recomienda contactar a ${payload.userName} y considerar buscar ayuda profesional urgentemente.</p>
+      <p>Atentamente,<br/>El equipo de Alumbra</p>
+    `,
+  };
 
-Resumen del Riesgo: ${payload.riskSummary}
-
-Se recomienda contactar a ${payload.userName} y considerar buscar ayuda profesional urgentemente.
-
-(Aquí irían los detalles del análisis o una imagen/PDF adjunto)
-
-Atentamente,
-El equipo de Alumbra
-  `);
-  console.log("--- END OF SIMULATION ---");
-
-  // Simulate success. Replace with actual success/failure check from your email service.
-  await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-  return true;
+  try {
+    console.log(`Attempting to send emergency email to ${payload.to}...`);
+    await sgMail.send(msg);
+    console.log(`Emergency email successfully sent to ${payload.to}`);
+    return true;
+  } catch (error: any) {
+    console.error('Error sending SendGrid email:', error);
+    if (error.response) {
+      // SendGrid specific error details
+      console.error("SendGrid Error Body:", error.response.body);
+      console.error("SendGrid Error Status Code:", error.response.statusCode);
+      console.error("SendGrid Error Headers:", error.response.headers);
+    }
+    return false;
+  }
 }
 
-// Example of how you might structure analysisDetails formatting (optional)
-function formatAnalysisDetailsForEmail(details: any): string {
-   // Convert the analysisResult object into a readable string format for the email body
-   let formatted = `Nivel de Riesgo: ${details.nivel_riesgo}/100\n`;
-   formatted += `Riesgo Inminente: ${details.riesgo_inminente ? 'Sí' : 'No'}\n`;
-   formatted += `Resumen: ${details.resumen_riesgo}\n`;
+
+/**
+ * Formats analysis details into a simple HTML string for the email body.
+ * @param details - The analysis result object.
+ * @returns An HTML string representation of the key analysis details.
+ */
+function formatAnalysisDetailsForHtmlEmail(details: AnalysisResult): string {
+   let html = `<p><strong>Nivel de Riesgo:</strong> ${details.nivel_riesgo}/100</p>`;
+   html += `<p><strong>Riesgo Inminente Detectado:</strong> ${details.riesgo_inminente ? '<strong>Sí</strong>' : 'No'}</p>`;
+   html += `<p><strong>Posible Origen:</strong> ${details.posible_agresor}</p>`;
+   html += `<p><strong>Persona Afectada Principalmente:</strong> ${details.persona_afectada}</p>`;
+
    if (details.categorias_detectadas.length > 0) {
-     formatted += `Categorías Detectadas: ${details.categorias_detectadas.join(', ')}\n`;
+     html += `<p><strong>Categorías Detectadas:</strong> ${details.categorias_detectadas.map(c => `<span style="background-color: #eee; padding: 2px 5px; border-radius: 3px; margin-right: 5px;">${c}</span>`).join(' ')}</p>`;
    }
     if (details.ejemplos.length > 0) {
-      formatted += `Ejemplos:\n${details.ejemplos.map((ex: string) => `- "${ex}"`).join('\n')}\n`;
+      html += `<p><strong>Ejemplos Problemáticos Clave:</strong></p><ul>${details.ejemplos.slice(0, 5).map((ex: string) => `<li><em>"${ex}"</em></li>`).join('')}</ul>`; // Show first few examples
     }
     if (details.recomendaciones.length > 0) {
-      formatted += `Recomendaciones Clave:\n${details.recomendaciones.slice(0, 3).map((rec: string) => `- ${rec.substring(0, 150)}...`).join('\n')}\n`; // Show first few recommendations briefly
+      // Prioritize imminent risk recommendations if present
+      const recsToShow = details.riesgo_inminente
+        ? details.recomendaciones.filter(rec => rec.toLowerCase().includes("urgente") || rec.toLowerCase().includes("seguridad"))
+        : details.recomendaciones;
+
+      html += `<p><strong>Recomendaciones Clave:</strong></p><ul>${recsToShow.slice(0, 3).map((rec: string) => `<li>${rec.substring(0, 250)}${rec.length > 250 ? '...' : ''}</li>`).join('')}</ul>`; // Show first few recommendations briefly
     }
-   return formatted;
+   return html;
+}
+
+/**
+ * Formats analysis details into a plain text string for the email body.
+ * @param details - The analysis result object.
+ * @returns A plain text string representation of the key analysis details.
+ */
+function formatAnalysisDetailsForTextEmail(details: AnalysisResult): string {
+   let text = `Nivel de Riesgo: ${details.nivel_riesgo}/100\n`;
+   text += `Riesgo Inminente Detectado: ${details.riesgo_inminente ? 'Sí' : 'No'}\n`;
+    text += `Posible Origen: ${details.posible_agresor}\n`;
+    text += `Persona Afectada Principalmente: ${details.persona_afectada}\n`;
+
+   if (details.categorias_detectadas.length > 0) {
+     text += `Categorías Detectadas: ${details.categorias_detectadas.join(', ')}\n`;
+   }
+    if (details.ejemplos.length > 0) {
+      text += `Ejemplos Problemáticos Clave:\n${details.ejemplos.slice(0, 5).map((ex: string) => `- "${ex}"`).join('\n')}\n`;
+    }
+    if (details.recomendaciones.length > 0) {
+        const recsToShow = details.riesgo_inminente
+            ? details.recomendaciones.filter(rec => rec.toLowerCase().includes("urgente") || rec.toLowerCase().includes("seguridad"))
+            : details.recomendaciones;
+      text += `Recomendaciones Clave:\n${recsToShow.slice(0, 3).map((rec: string) => `- ${rec.substring(0, 250)}${rec.length > 250 ? '...' : ''}`).join('\n')}\n`;
+    }
+   return text;
 }
