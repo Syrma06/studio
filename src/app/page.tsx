@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
-import { AlertTriangle, Smile, Users, Accessibility, HeartHandshake, Siren } from 'lucide-react'; // Import necessary icons
+import { AlertTriangle, Frown, Users, Accessibility, HeartHandshake, Siren } from 'lucide-react'; // Changed Smile to Frown, imported necessary icons
 
 // Define the HeroSection1 component (adapted from the provided image and structure)
 function HeroSection1() {
@@ -45,7 +45,7 @@ function HeroSection1() {
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-muted-foreground">Estado Emocional</h3>
                 <div className="flex items-center space-x-2">
-                  <Smile className="w-5 h-5 text-green-600" />
+                  <Frown className="w-5 h-5 text-red-600" /> {/* Changed Smile to Frown and color */}
                   <span className="text-foreground font-medium">Negativo</span>
                 </div>
               </div>
@@ -149,4 +149,3 @@ export default function WelcomePage() {
     </main>
   );
 }
-
