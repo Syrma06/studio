@@ -23,7 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 // import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 // Removed Input import as it's no longer used here
 // import { Input } from "@/components/ui/input";
-import { Loader2, AlertCircle, Terminal, Download, ArrowLeft, UserCheck, UserX, Users, HelpCircle, Siren } from "lucide-react"; // Added ArrowLeft and icons for aggressor type, Siren for imminent risk
+import { Loader2, AlertCircle, Terminal, Download, ArrowLeft, UserCheck, UserX, Users, HelpCircle, Siren, UserMinus, Target } from "lucide-react"; // Added ArrowLeft and icons for aggressor/affected type, Siren for imminent risk, Target
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
 
@@ -40,7 +40,7 @@ interface UserData {
     apellido: string;
     edad: number;
     genero: "hombre" | "mujer" | "prefiero_no_decirlo"; // Add gender
-    relationshipType: "pareja" | "amistad" | "familiar"; // Add relationshipType
+    relationshipType: "pareja" | "amistad" | "familiar" | "laboral" | "grupo"; // Added laboral, grupo
     emailEmergencia?: string; // Add optional emergency email
     // Add other questionnaire fields if needed for context, though they aren't directly used in the analyze call
     makesYouDoubt?: "si" | "no";
@@ -75,7 +75,7 @@ export default function AnalyzerClient() {
             typeof parsedData.apellido === 'string' &&
             typeof parsedData.edad === 'number' &&
             ["hombre", "mujer", "prefiero_no_decirlo"].includes(parsedData.genero) && // Validate gender
-            ["pareja", "amistad", "familiar"].includes(parsedData.relationshipType) // Validate relationshipType
+            ["pareja", "amistad", "familiar", "laboral", "grupo"].includes(parsedData.relationshipType) // Validate relationshipType (added laboral, grupo)
             // Emergency email is optional, but check if it's a string if present
             && (parsedData.emailEmergencia === undefined || typeof parsedData.emailEmergencia === 'string')
             ) {
@@ -329,30 +329,68 @@ export default function AnalyzerClient() {
           case 'usuario':
               return {
                   icon: UserX,
-                  tooltip: 'El análisis sugiere que tú podrías estar mostrando comportamientos problemáticos.',
+                  tooltip: 'El análisis sugiere que TÚ podrías estar mostrando comportamientos problemáticos.',
                   label: 'Tú (Usuario)'
               };
           case 'interlocutor':
               return {
                   icon: UserCheck,
-                  tooltip: 'El análisis sugiere que la otra persona podría estar mostrando comportamientos problemáticos.',
+                  tooltip: 'El análisis sugiere que la OTRA PERSONA podría estar mostrando comportamientos problemáticos.',
                   label: 'La otra persona'
               };
           case 'ambiguo':
               return {
                   icon: Users,
-                  tooltip: 'El análisis sugiere comportamientos problemáticos por ambas partes o no está claro.',
+                  tooltip: 'El análisis sugiere comportamientos problemáticos por AMBAS PARTES o no está claro.',
                   label: 'Ambigüo / Ambos'
               };
           case 'ninguno':
           default:
               return {
                   icon: HelpCircle,
-                  tooltip: 'No se detectaron señales significativas de abuso o manipulación en el análisis.',
-                  label: 'Ninguno Detectado'
+                  tooltip: 'No se detectaron señales significativas de abuso o manipulación como origen principal.',
+                  label: 'Ninguno / Externo' // Consider external influence if not 'ninguno'
                };
       }
    };
+
+    // Helper function to get icon and tooltip based on affected person type
+    const getAffectedInfo = (affectedType: AnalysisResult['persona_afectada'], userName: string | undefined) => {
+        const name = userName || "Usuario"; // Fallback name
+        switch (affectedType) {
+            case 'usuario':
+                return {
+                    icon: UserMinus, // Icon indicating 'self' affected
+                    tooltip: `El análisis sugiere que TÚ (${name}) eres la principal persona afectada.`,
+                    label: `Tú (${name})`
+                };
+            case 'interlocutor':
+                return {
+                    icon: Target, // Icon indicating 'other' affected
+                    tooltip: 'El análisis sugiere que la OTRA PERSONA es la principal afectada.',
+                    label: 'La otra persona'
+                };
+            case 'ambos':
+                return {
+                    icon: Users, // Using Users icon for 'both'
+                    tooltip: 'El análisis sugiere que AMBAS PARTES se ven afectadas negativamente.',
+                    label: 'Ambos'
+                };
+            case 'grupo':
+                return {
+                    icon: Users, // Using Users icon for 'group'
+                    tooltip: 'El análisis sugiere que VARIAS PERSONAS del grupo se ven afectadas.',
+                    label: 'Grupo'
+                };
+            case 'ninguno':
+            default:
+                return {
+                    icon: HelpCircle,
+                    tooltip: 'No se detectó un impacto negativo claro en ninguna persona específica.',
+                    label: 'Ninguno'
+                 };
+        }
+     };
 
 
   return (
@@ -427,11 +465,17 @@ export default function AnalyzerClient() {
                     <Skeleton className="h-4 w-1/4" />
                     <Skeleton className="h-10 w-full" /> {/* Taller for progress */}
                  </div>
-                 {/* Skeleton for Aggressor */}
-                  <div className="space-y-2">
-                     <Skeleton className="h-4 w-1/4" />
-                     <Skeleton className="h-6 w-32" />
-                  </div>
+                  {/* Skeleton for Dynamics (Aggressor & Affected) */}
+                 <div className="flex space-x-8"> {/* Flex container for dynamics */}
+                    <div className="space-y-2 w-1/2">
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-6 w-32" />
+                    </div>
+                     <div className="space-y-2 w-1/2">
+                        <Skeleton className="h-4 w-1/2" />
+                        <Skeleton className="h-6 w-32" />
+                     </div>
+                 </div>
                   <div className="space-y-2">
                      <Skeleton className="h-4 w-1/4" />
                      <div className="flex flex-wrap gap-2"> {/* Use flex-wrap */}
@@ -515,23 +559,45 @@ export default function AnalyzerClient() {
 
                 </div>
 
-                 {/* Possible Aggressor */}
-                 <div>
-                    <Label>Posible Origen del Comportamiento</Label>
-                    <div className="flex items-center space-x-2 mt-1">
-                       <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span> {/* Wrap icon in span for TooltipTrigger */}
-                               {React.createElement(getAggressorInfo(analysisResult.posible_agresor).icon, { className: "h-5 w-5 text-muted-foreground" })}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{getAggressorInfo(analysisResult.posible_agresor).tooltip}</p>
-                          </TooltipContent>
-                       </Tooltip>
-                       <span className="text-sm text-foreground">{getAggressorInfo(analysisResult.posible_agresor).label}</span>
+                 {/* Dynamics Section (Aggressor & Affected) */}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {/* Possible Aggressor */}
+                     <div>
+                        <Label>Posible Origen del Comportamiento</Label>
+                        <div className="flex items-center space-x-2 mt-1">
+                           <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span> {/* Wrap icon in span for TooltipTrigger */}
+                                   {React.createElement(getAggressorInfo(analysisResult.posible_agresor).icon, { className: "h-5 w-5 text-muted-foreground" })}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{getAggressorInfo(analysisResult.posible_agresor).tooltip}</p>
+                              </TooltipContent>
+                           </Tooltip>
+                           <span className="text-sm text-foreground">{getAggressorInfo(analysisResult.posible_agresor).label}</span>
+                        </div>
+                     </div>
+
+                    {/* Affected Person */}
+                    <div>
+                        <Label>Principal Persona Afectada</Label>
+                        <div className="flex items-center space-x-2 mt-1">
+                           <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span> {/* Wrap icon in span for TooltipTrigger */}
+                                   {React.createElement(getAffectedInfo(analysisResult.persona_afectada, userData?.nombre).icon, { className: "h-5 w-5 text-muted-foreground" })}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{getAffectedInfo(analysisResult.persona_afectada, userData?.nombre).tooltip}</p>
+                              </TooltipContent>
+                           </Tooltip>
+                           <span className="text-sm text-foreground">{getAffectedInfo(analysisResult.persona_afectada, userData?.nombre).label}</span>
+                        </div>
                     </div>
                  </div>
+
 
                 {/* Detected Categories */}
                 {analysisResult.categorias_detectadas.length > 0 && (
@@ -605,3 +671,4 @@ export default function AnalyzerClient() {
     </TooltipProvider> // Close TooltipProvider
   );
 }
+

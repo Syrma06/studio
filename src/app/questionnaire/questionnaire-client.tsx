@@ -21,7 +21,8 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const QuestionnaireFormSchema = z.object({
-  relationshipType: z.enum(["pareja", "amistad", "familiar"], {
+  // Updated enum to include new options
+  relationshipType: z.enum(["pareja", "amistad", "familiar", "laboral", "grupo"], {
     required_error: "Debes seleccionar el tipo de relación.",
   }),
   makesYouDoubt: z.enum(["si", "no"], {
@@ -156,12 +157,12 @@ export default function QuestionnaireClient() {
                    name="relationshipType"
                    render={({ field }) => (
                      <FormItem className="space-y-3">
-                       <RHFFormLabel>1. ¿Esta conversación es con una pareja, amigo/a o familiar?</RHFFormLabel>
+                       <RHFFormLabel>1. ¿Esta conversación es con una pareja, amigo/a, familiar, colega o grupo?</RHFFormLabel>
                        <FormControl>
                          <RadioGroup
                            onValueChange={field.onChange}
                            defaultValue={field.value}
-                           className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-4"
+                           className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-4 sm:flex-wrap" // Added flex-wrap
                            aria-label="Tipo de relación"
                          >
                            <FormItem className="flex items-center space-x-2">
@@ -182,6 +183,18 @@ export default function QuestionnaireClient() {
                              </FormControl>
                              <Label htmlFor="r1-familiar" className="font-normal">Familiar</Label>
                            </FormItem>
+                            <FormItem className="flex items-center space-x-2"> {/* Added Laboral */}
+                             <FormControl>
+                               <RadioGroupItem value="laboral" id="r1-laboral" />
+                             </FormControl>
+                             <Label htmlFor="r1-laboral" className="font-normal">Laboral</Label>
+                           </FormItem>
+                           <FormItem className="flex items-center space-x-2"> {/* Added Grupo */}
+                             <FormControl>
+                               <RadioGroupItem value="grupo" id="r1-grupo" />
+                             </FormControl>
+                             <Label htmlFor="r1-grupo" className="font-normal">Grupo</Label>
+                           </FormItem>
                          </RadioGroup>
                        </FormControl>
                        <FormMessage />
@@ -194,7 +207,7 @@ export default function QuestionnaireClient() {
                    name="makesYouDoubt"
                    render={({ field }) => (
                      <FormItem className="space-y-3">
-                       <RHFFormLabel>2. ¿Sientes que esta persona te hace dudar de ti mismo/a o te hace sentir mal contigo mismo/a?</RHFFormLabel>
+                       <RHFFormLabel>2. ¿Sientes que esta persona (o personas en la conversación) te hace dudar de ti mismo/a o te hace sentir mal contigo mismo/a?</RHFFormLabel>
                        <FormControl>
                          <RadioGroup
                            onValueChange={field.onChange}
@@ -226,7 +239,7 @@ export default function QuestionnaireClient() {
                    name="controlsYou"
                    render={({ field }) => (
                      <FormItem className="space-y-3">
-                       <RHFFormLabel>3. ¿Has sentido que esta persona te controla o te limita?</RHFFormLabel>
+                       <RHFFormLabel>3. ¿Has sentido que esta persona (o personas) te controla o te limita?</RHFFormLabel>
                        <FormControl>
                          <RadioGroup
                            onValueChange={field.onChange}
@@ -258,7 +271,7 @@ export default function QuestionnaireClient() {
                    name="wantedToEndRelationship"
                    render={({ field }) => (
                      <FormItem className="space-y-3">
-                       <RHFFormLabel>4. ¿Alguna vez has querido cortar la relación, pero te sentiste culpable o incapaz?</RHFFormLabel>
+                       <RHFFormLabel>4. Si aplica (pareja, amistad, familiar), ¿alguna vez has querido cortar la relación, pero te sentiste culpable o incapaz?</RHFFormLabel>
                        <FormControl>
                          <RadioGroup
                            onValueChange={field.onChange}
@@ -276,7 +289,7 @@ export default function QuestionnaireClient() {
                              <FormControl>
                                <RadioGroupItem value="no" id="r4-no" />
                              </FormControl>
-                             <Label htmlFor="r4-no" className="font-normal">No</Label>
+                             <Label htmlFor="r4-no" className="font-normal">No / No aplica</Label> {/* Updated label */}
                            </FormItem>
                          </RadioGroup>
                        </FormControl>
@@ -290,7 +303,7 @@ export default function QuestionnaireClient() {
                    name="wantsEvaluation"
                    render={({ field }) => (
                      <FormItem className="space-y-3">
-                       <RHFFormLabel>5. ¿Te gustaría recibir una evaluación sobre si estás viviendo una relación emocionalmente dañina?</RHFFormLabel>
+                       <RHFFormLabel>5. ¿Te gustaría recibir una evaluación sobre si la dinámica de esta conversación podría ser emocionalmente dañina?</RHFFormLabel>
                        <FormControl>
                          <RadioGroup
                            onValueChange={field.onChange}
@@ -567,3 +580,4 @@ export default function QuestionnaireClient() {
     </>
   );
 }
+
