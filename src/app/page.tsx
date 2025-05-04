@@ -133,7 +133,7 @@ export default function WelcomePage() {
               title="Relaciones laborales"
               description="Identifica patrones de estrés, manipulación o falta de reconocimiento en el trabajo."
                imageUrl="https://picsum.photos/150/100?random=4"
-               imageHint="office conflict stress"
+               imageHint="workplace manipulation power imbalance"
             />
           </div>
         </div>
