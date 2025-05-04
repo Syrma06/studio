@@ -8,78 +8,79 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%; /* Pure White */
-    --foreground: 0 0% 3.9%; /* Default Dark for text contrast */
-    --card: 0 0% 100%; /* Pure White */
-    --card-foreground: 0 0% 3.9%; /* Default Dark */
-    --popover: 0 0% 100%; /* Pure White */
-    --popover-foreground: 0 0% 3.9%; /* Default Dark */
+    /* Light Theme: Light Blue BG, Dark Text */
+    --background: 204 90% 85%; /* Light Blue */
+    --foreground: 204 100% 10%; /* Dark Blue */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 204 100% 10%; /* Dark Blue */
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 204 100% 10%; /* Dark Blue */
     --primary: 204 100% 30%; /* Deep Blue */
-    --primary-foreground: 0 0% 100%; /* Pure White */
-    --secondary: 204 100% 95%; /* Light Blue */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 204 80% 75%; /* Lighter Blue */
     --secondary-foreground: 204 100% 30%; /* Deep Blue */
-    --muted: 204 100% 97%; /* Lighter Blue */
+    --muted: 204 80% 95%; /* Very Light Blue */
     --muted-foreground: 204 20% 50%; /* Muted Blue Grey */
-    --accent: 0 100% 63%; /* Soft Red/Violet */
-    --accent-foreground: 0 0% 100%; /* Pure White */
-    --destructive: 0 100% 63%; /* Soft Red/Violet for destructive actions/warnings */
-    --destructive-foreground: 0 0% 100%; /* Pure White */
-    --border: 204 20% 90%; /* Light Blue Grey */
-    --input: 204 20% 90%; /* Light Blue Grey */
+    --accent: 0 100% 63%; /* Soft Red/Violet (Contrast) */
+    --accent-foreground: 0 0% 100%; /* White */
+    --destructive: 0 100% 63%; /* Soft Red/Violet */
+    --destructive-foreground: 0 0% 100%; /* White */
+    --border: 204 50% 80%; /* Light Blue Grey Border */
+    --input: 204 50% 80%; /* Light Blue Grey Input */
     --ring: 204 100% 30%; /* Deep Blue */
-    --chart-1: 204 100% 30%; /* Deep Blue */
-    --chart-2: 0 100% 63%;   /* Soft Red/Violet */
-    --chart-3: 204 50% 60%;  /* Medium Blue */
-    --chart-4: 0 70% 75%;   /* Lighter Red */
-    --chart-5: 204 80% 80%;  /* Very Light Blue */
+    --chart-1: 204 100% 30%;
+    --chart-2: 0 100% 63%;
+    --chart-3: 204 50% 60%;
+    --chart-4: 0 70% 75%;
+    --chart-5: 204 80% 80%;
     --radius: 0.5rem;
-    --sidebar-background: 204 100% 98%; /* Very Light Blue */
-    --sidebar-foreground: 204 100% 20%; /* Darker Blue */
-    --sidebar-primary: 204 100% 30%; /* Deep Blue */
-    --sidebar-primary-foreground: 0 0% 100%; /* Pure White */
-    --sidebar-accent: 204 100% 90%; /* Light Blue Accent */
-    --sidebar-accent-foreground: 204 100% 20%; /* Darker Blue */
-    --sidebar-border: 204 20% 85%; /* Slightly darker border */
-    --sidebar-ring: 204 100% 30%; /* Deep Blue */
-    --questionnaire-button-bg: 270 33% 80%; /* Light Purple/Lavender from image #C8A2C8 */
+    --sidebar-background: 204 90% 95%; /* Very Light Blue Sidebar */
+    --sidebar-foreground: 204 100% 20%; /* Darker Blue Sidebar Text */
+    --sidebar-primary: 204 100% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 204 100% 90%;
+    --sidebar-accent-foreground: 204 100% 20%;
+    --sidebar-border: 204 20% 85%;
+    --sidebar-ring: 204 100% 30%;
+    --questionnaire-button-bg: 270 33% 80%; /* Keep Lavender Button */
     --questionnaire-button-fg: 0 0% 100%; /* White */
   }
   .dark {
-    /* Adding a basic dark theme based on the light theme for completeness */
-    --background: 204 15% 10%; /* Dark Blue Grey */
+    /* Dark Theme: Dark Violet BG, Light Text */
+    --background: 270 45% 18%; /* Dark Violet */
     --foreground: 0 0% 98%; /* Near White */
-    --card: 204 15% 15%; /* Slightly Lighter Dark Blue Grey */
+    --card: 270 40% 25%; /* Slightly Lighter Violet */
     --card-foreground: 0 0% 98%; /* Near White */
-    --popover: 204 15% 10%; /* Dark Blue Grey */
+    --popover: 270 45% 18%; /* Dark Violet */
     --popover-foreground: 0 0% 98%; /* Near White */
-    --primary: 204 90% 60%; /* Brighter Blue */
-    --primary-foreground: 204 100% 10%; /* Dark Blue for contrast */
-    --secondary: 204 20% 25%; /* Muted Dark Blue */
+    --primary: 270 70% 70%; /* Lighter Violet */
+    --primary-foreground: 270 45% 10%; /* Dark Violet/Black */
+    --secondary: 270 30% 35%; /* Muted Dark Violet */
     --secondary-foreground: 0 0% 98%; /* Near White */
-    --muted: 204 15% 20%; /* Darker Muted Blue */
+    --muted: 270 35% 22%; /* Darker Muted Violet */
     --muted-foreground: 0 0% 63.9%; /* Light Grey */
-    --accent: 0 90% 70%; /* Brighter Soft Red/Violet */
-    --accent-foreground: 0 100% 10%; /* Dark Red/Violet for contrast */
-    --destructive: 0 90% 70%; /* Brighter Soft Red/Violet */
-    --destructive-foreground: 0 100% 10%; /* Dark Red/Violet */
-    --border: 204 15% 25%; /* Dark Border */
-    --input: 204 15% 25%; /* Dark Input */
-    --ring: 204 90% 60%; /* Brighter Blue */
-    --chart-1: 204 90% 60%;
-    --chart-2: 0 90% 70%;
-    --chart-3: 204 50% 50%;
-    --chart-4: 0 70% 60%;
-    --chart-5: 204 80% 40%;
-    --sidebar-background: 204 15% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 204 90% 60%;
-    --sidebar-primary-foreground: 204 100% 10%;
-    --sidebar-accent: 204 20% 20%;
+    --accent: 180 80% 60%; /* Bright Cyan/Teal (Contrast) */
+    --accent-foreground: 180 80% 10%; /* Dark Teal */
+    --destructive: 0 80% 65%; /* Brighter Red */
+    --destructive-foreground: 0 80% 10%; /* Dark Red */
+    --border: 270 30% 30%; /* Dark Violet Border */
+    --input: 270 30% 30%; /* Dark Violet Input */
+    --ring: 270 70% 70%; /* Lighter Violet */
+    --chart-1: 270 70% 70%;
+    --chart-2: 180 80% 60%;
+    --chart-3: 270 50% 50%;
+    --chart-4: 0 80% 65%;
+    --chart-5: 270 40% 40%;
+    --sidebar-background: 270 45% 15%; /* Darker Violet Sidebar */
+    --sidebar-foreground: 0 0% 95%; /* Near White Sidebar Text */
+    --sidebar-primary: 270 70% 70%;
+    --sidebar-primary-foreground: 270 45% 10%;
+    --sidebar-accent: 270 30% 30%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 204 15% 25%;
-    --sidebar-ring: 204 90% 60%;
-     --questionnaire-button-bg: 270 33% 70%; /* Slightly adjusted for dark */
-    --questionnaire-button-fg: 0 0% 100%;
+    --sidebar-border: 270 30% 30%;
+    --sidebar-ring: 270 70% 70%;
+    --questionnaire-button-bg: 270 50% 75%; /* Adjusted Lavender Button */
+    --questionnaire-button-fg: 270 50% 10%; /* Dark */
   }
 }
 
