@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
-import { AlertTriangle, Frown, Users, Accessibility, HeartHandshake, Siren } from 'lucide-react'; // Changed Smile to Frown, imported necessary icons
+import { AlertTriangle, Frown, Users, Home, HeartHandshake, Siren } from 'lucide-react'; // Changed Smile to Frown, imported Home, removed Accessibility
 
 // Define the HeroSection1 component (adapted from the provided image and structure)
 function HeroSection1() {
@@ -115,11 +115,11 @@ export default function WelcomePage() {
               imageHint="student group study"
             />
             <FeatureCard
-              icon={Accessibility}
-              title="Discapacidades Visuales"
-              description="Lectura de emociones detectadas para accesibilidad."
+              icon={Home} // Changed icon
+              title="Relaciones Familiares" // Changed title
+              description="Analiza dinámicas y tensiones en el ámbito familiar." // Changed description
                imageUrl="https://picsum.photos/150/100?random=2"
-              imageHint="visually impaired person using technology"
+              imageHint="family discussion argument" // Changed image hint
             />
             <FeatureCard
               icon={HeartHandshake} // Using HeartHandshake for Autism/Empathy
