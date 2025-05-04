@@ -46,7 +46,7 @@ function HeroSection1() {
                 <h3 className="text-sm font-semibold text-muted-foreground">Estado Emocional</h3>
                 <div className="flex items-center space-x-2">
                   <Smile className="w-5 h-5 text-green-600" />
-                  <span className="text-foreground font-medium">Positivo</span>
+                  <span className="text-foreground font-medium">Negativo</span>
                 </div>
               </div>
               <div className="space-y-2">
@@ -149,3 +149,4 @@ export default function WelcomePage() {
     </main>
   );
 }
+
