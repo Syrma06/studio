@@ -28,6 +28,7 @@ function HeroSection1() {
                 >
                     Alumbra:
                 </AnimatedShinyText>
+                 <br /> {/* Line break */}
                  Ponle luz a tus palabras, claridad a tus vínculos
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl">
@@ -171,3 +172,4 @@ export default function WelcomePage() {
     </main>
   );
 }
+
