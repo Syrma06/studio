@@ -92,7 +92,8 @@ export async function sendEmergencyEmail(payload: EmergencyEmailPayload): Promis
  * @returns An HTML string representation of the key analysis details.
  */
 function formatAnalysisDetailsForHtmlEmail(details: AnalysisResult): string {
-    const affectedPersonDisplay = getAffectedPersonDisplayText(details.persona_afectada, details.nombre_interlocutor);
+    // Removed interlocutorName from parameters
+    const affectedPersonDisplay = getAffectedPersonDisplayText(details.persona_afectada);
     let html = `<p><strong>Nivel de Riesgo:</strong> ${details.nivel_riesgo}/100</p>`;
     html += `<p><strong>Riesgo Inminente Detectado:</strong> ${details.riesgo_inminente ? '<strong>Sí</strong>' : 'No'}</p>`;
     html += `<p><strong>Posible Origen:</strong> ${details.posible_agresor}</p>`;
@@ -122,7 +123,8 @@ function formatAnalysisDetailsForHtmlEmail(details: AnalysisResult): string {
  * @returns A plain text string representation of the key analysis details.
  */
 function formatAnalysisDetailsForTextEmail(details: AnalysisResult): string {
-    const affectedPersonDisplay = getAffectedPersonDisplayText(details.persona_afectada, details.nombre_interlocutor);
+    // Removed interlocutorName from parameters
+    const affectedPersonDisplay = getAffectedPersonDisplayText(details.persona_afectada);
     let text = `Nivel de Riesgo: ${details.nivel_riesgo}/100\n`;
     text += `Riesgo Inminente Detectado: ${details.riesgo_inminente ? 'Sí' : 'No'}\n`;
     text += `Posible Origen: ${details.posible_agresor}\n`;
@@ -146,15 +148,16 @@ function formatAnalysisDetailsForTextEmail(details: AnalysisResult): string {
 /**
  * Helper function to get display text for the affected person.
  * @param affectedType - The type of affected person.
- * @param interlocutorName - The name of the interlocutor, if available.
  * @returns A display string for the affected person.
  */
-function getAffectedPersonDisplayText(affectedType: AnalysisResult['persona_afectada'], interlocutorName?: string): string {
+function getAffectedPersonDisplayText(affectedType: AnalysisResult['persona_afectada']): string {
+    // Removed interlocutorName parameter
     switch (affectedType) {
         case 'usuario':
             return 'El usuario que proporcionó la conversación';
         case 'interlocutor':
-            return interlocutorName ? interlocutorName : 'La otra persona';
+             // Using generic terms instead of name/pronoun
+            return 'La otra persona';
         case 'ambos':
             return 'Ambas partes';
         case 'grupo':
@@ -164,4 +167,3 @@ function getAffectedPersonDisplayText(affectedType: AnalysisResult['persona_afec
             return 'Ninguno identificado claramente';
     }
 }
-```

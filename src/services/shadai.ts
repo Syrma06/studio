@@ -36,10 +36,7 @@
     * Identificación de quién parece ser la principal persona afectada negativamente.
     */
    persona_afectada: "usuario" | "interlocutor" | "ambos" | "grupo" | "ninguno"; // Added field
-   /**
-    * El nombre del principal interlocutor, si se puede identificar.
-    */
-   nombre_interlocutor?: string; // Added optional field
+   // nombre_interlocutor field REMOVED
  }
 
  /**
@@ -70,7 +67,7 @@
     ]);
     let possibleAggressor: AnalysisResult['posible_agresor'] = 'ninguno';
     let affectedPerson: AnalysisResult['persona_afectada'] = 'ninguno'; // Initialize affected person
-    let interlocutorName: string | undefined = undefined; // Initialize interlocutor name
+    // interlocutorName REMOVED
 
 
    if (text.toLowerCase().includes("if you really loved me") || text.toLowerCase().includes("si me quisieras de verdad")) {
@@ -127,11 +124,7 @@
         possibleAggressor = 'usuario'; // Set user as aggressor for mock
         affectedPerson = 'interlocutor'; // Interlocutor is affected
         riskSummary = "Posible culpabilización ejercida por el usuario (Mock)."
-        // Try to extract interlocutor name (very basic mock)
-        const match = text.match(/^(.*?):/);
-        if (match && match[1].toLowerCase() !== 'yo') { // Assuming 'Yo:' is the user
-            interlocutorName = match[1].trim();
-        }
+        // interlocutorName extraction REMOVED
     }
 
    // Mock imminent risk detection
@@ -152,10 +145,7 @@
            possibleAggressor = 'ninguno'; // Or 'usuario' if self-harm is considered aggression against self
        } else {
            affectedPerson = 'interlocutor';
-           const match = text.match(/^(.*?):/);
-            if (match) {
-                interlocutorName = match[1].trim();
-            }
+           // interlocutorName extraction REMOVED
            possibleAggressor = 'ninguno'; // Or 'interlocutor' if suicide is viewed in context of relationship stress
        }
 
@@ -171,11 +161,7 @@
        recommendations.add("Mock: Informa a alguien de confianza sobre la amenaza.");
        affectedPerson = 'usuario'; // Assume threat is towards user in mock
        possibleAggressor = 'interlocutor'; // Assume threat comes from interlocutor
-       // Try to extract interlocutor name (very basic mock)
-        const match = text.match(/^(.*?):/);
-        if (match && match[1].toLowerCase() !== 'yo') {
-            interlocutorName = match[1].trim();
-        }
+        // interlocutorName extraction REMOVED
     }
 
 
@@ -199,8 +185,8 @@
      recomendaciones: Array.from(recommendations),
      posible_agresor: possibleAggressor, // Return determined aggressor
      persona_afectada: affectedPerson, // Return determined affected person
-     nombre_interlocutor: interlocutorName, // Return determined interlocutor name
+     // nombre_interlocutor removed
    };
  }
 
-```
+    

@@ -55,10 +55,7 @@ const AnalyzeConversationOutputSchema = z.object({
      persona_afectada: z // Added field
         .enum(["usuario", "interlocutor", "ambos", "grupo", "ninguno"])
         .describe('Identificación de quién parece ser la principal persona afectada negativamente por el comportamiento problemático detectado. "usuario" si es la persona que envió el texto, "interlocutor" si es la otra persona (o principal interlocutor), "ambos" si ambas partes se ven afectadas negativamente, "grupo" si el impacto negativo es en varias personas de un grupo, "ninguno" si no se detecta un impacto negativo claro en nadie.'),
-     nombre_interlocutor: z // Added field for interlocutor name
-        .string()
-        .optional()
-        .describe('El nombre del principal interlocutor, si es identificable en la conversación. Dejar vacío si no es claro, son varias personas o no se menciona.'),
+     // nombre_interlocutor field REMOVED from schema
 
   }).describe('El resultado detallado del análisis de la conversación.')
 });
@@ -133,7 +130,7 @@ const analysisPrompt = ai.definePrompt({
     *   **Desesperación Extrema y Aislamiento Severo:** Indicadores de que la persona está completamente aislada y sin salida.
     *   **Si detectas CUALQUIERA de estas señales, establece \`riesgo_inminente\` en \`true\` y el \`nivel_riesgo\` debe ser 90 o superior.**
     *   En \`resumen_riesgo\`, describe brevemente la naturaleza del peligro (ej. "Se detectó ideación suicida explícita", "Amenazas de violencia física directa").
-    *   Las recomendaciones DEBEN priorizar la seguridad inmediata (ver punto 10).
+    *   Las recomendaciones DEBEN priorizar la seguridad inmediata (ver punto 9).
 
 2.  **Identifica Patrones de Abuso/Manipulación:** Busca patrones como gaslighting, culpabilización, aislamiento, minimización, amenazas (no inminentes), condicionamiento del afecto, invalidación, celos excesivos, control, humillación, bombardeo amoroso inicial seguido de devaluación, etc.
 
@@ -157,11 +154,9 @@ const analysisPrompt = ai.definePrompt({
     *   \`grupo\`: Si la conversación es grupal y el impacto negativo parece recaer sobre varias personas o el grupo en general.
     *   \`ninguno\`: Si no se detecta un impacto negativo claro o el comportamiento es menor.
 
-8.  **Identifica el Nombre del Interlocutor (Opcional):** Si puedes identificar claramente el nombre del principal interlocutor en la conversación, colócalo en el campo nombre_interlocutor. Si no es claro, es un grupo, no se menciona, o el posible_agresor es el usuario, deja este campo vacío.
+8.  **Estima el Nivel de Riesgo (0-100):** Considera frecuencia, intensidad, tipos de tácticas y **si hay riesgo inminente (esto eleva el riesgo automáticamente a 90+)**.
 
-9.  **Estima el Nivel de Riesgo (0-100):** Considera frecuencia, intensidad, tipos de tácticas y **si hay riesgo inminente (esto eleva el riesgo automáticamente a 90+)**.
-
-10. **Genera el Resultado JSON (estructura \`AnalyzeConversationOutputSchema\`):**
+9.  **Genera el Resultado JSON (estructura \`AnalyzeConversationOutputSchema\`):**
     *   **nivel_riesgo**: Tu estimación numérica.
     *   **riesgo_inminente**: \`true\` o \`false\` según el punto 1.
     *   **resumen_riesgo**: Breve descripción si \`riesgo_inminente\` es \`true\`, o una frase indicando el tipo principal de riesgo si no es inminente pero sí significativo (ej. "Riesgo de manipulación emocional y gaslighting", "Riesgo de aislamiento y control"). Si no hay riesgo, indica "No se detectaron riesgos significativos". **Si sospechas una influencia externa (\`posible_agresor\` = \`externo\`), menciónalo brevemente aquí.**
@@ -169,7 +164,6 @@ const analysisPrompt = ai.definePrompt({
     *   **ejemplos**: Frases textuales *exactas* como ejemplos claros. Array vacío si no hay.
     *   **persona_afectada**: Tu clasificación según el punto 7.
     *   **posible_agresor**: Tu clasificación según el punto 6.
-    *   **nombre_interlocutor**: El nombre identificado del interlocutor (si es posible), o vacío.
     *   **recomendaciones**: Proporciona recomendaciones específicas, detalladas y accionables. **Adapta según \`posible_agresor\`, \`persona_afectada\` y \`riesgo_inminente\`**:
 
         *   **Si \`riesgo_inminente\` es \`true\`**:
@@ -177,7 +171,7 @@ const analysisPrompt = ai.definePrompt({
             *   "**CONTACTA AYUDA URGENTE:** Llama inmediatamente a una línea de ayuda o emergencia ([ej. 911 en muchos países, o busca 'línea de ayuda suicidio/crisis [tu país]' online]). Acude a la sala de emergencias más cercana si es seguro."
             *   "Si puedes hacerlo de forma segura, informa a alguien de confianza (familiar, amigo cercano no involucrado) sobre la situación INMEDIATAMENTE."
             *   "No estás solo/a. Hay profesionales disponibles 24/7 para ayudarte en este momento crítico."
-            *   (Si el afectado es el interlocutor y el usuario no es el agresor): "Si crees que [interlocutor, usar nombre_interlocutor si está disponible] corre peligro inmediato y es seguro para ti, contacta servicios de emergencia o informa a alguien cercano a esa persona."
+            *   (Si el afectado es el interlocutor y el usuario no es el agresor): "Si crees que la otra persona corre peligro inmediato y es seguro para ti, contacta servicios de emergencia o informa a alguien cercano a esa persona."
             *   (Si el agresor es el interlocutor y el afectado es el usuario): "Si te sientes amenazado/a físicamente, aléjate de la situación si puedes, busca un lugar seguro y contacta a las autoridades (policía)."
             *   (Si el agresor es el usuario): "Estos pensamientos o impulsos son serios y requieren atención profesional inmediata. Llama AHORA a una línea de ayuda [Número local/nacional]. No estás solo/a en esto y hay ayuda disponible."
 
@@ -206,13 +200,13 @@ const analysisPrompt = ai.definePrompt({
                         *   "**Plan de Seguridad (si hay riesgo):** Si sientes que la situación podría escalar o si hay historial de amenazas/control, considera crear un plan de seguridad básico (tener a mano números de ayuda, informar a alguien de confianza de tus movimientos, tener documentos importantes accesibles)."
 
                 *   **Si \`persona_afectada\` es \`interlocutor\` (y \`posible_agresor\` es \`usuario\` o \`ambiguo\`):**
-                    *   **Autoconciencia Profunda:** "El análisis sugiere que tu comportamiento, ejemplificado por frases como '[ejemplo]', se alinea con patrones de [categoría detectada]. Es fundamental que reconozcas el impacto negativo que esto tiene en [usar nombre_interlocutor si está disponible, sino 'la otra persona'], pudiendo causar [impacto específico, ej. 'miedo, ansiedad, tristeza, resentimiento, sensación de caminar sobre cáscaras de huevo']."
+                    *   **Autoconciencia Profunda:** "El análisis sugiere que tu comportamiento, ejemplificado por frases como '[ejemplo]', se alinea con patrones de [categoría detectada]. Es fundamental que reconozcas el impacto negativo que esto tiene en [Determina según contexto: 'la otra persona'/'él'/'ella'], pudiendo causar [impacto específico, ej. 'miedo, ansiedad, tristeza, resentimiento, sensación de caminar sobre cáscaras de huevo']."
                     *   **Reflexión sobre Motivaciones:** "¿Qué emoción o necesidad subyacente (ej. inseguridad, miedo al abandono, frustración, necesidad de control) estás intentando manejar a través de este comportamiento? ¿Cómo podrías expresar esa necesidad o emoción de forma más saludable y respetuosa? ¿Cómo te sentirías tú si te hablaran así?"
                     *   **Aprendizaje de Alternativas Saludables:**
                         *   "**Practica la Comunicación No Violenta (CNV):** Aprende a expresar tus sentimientos y necesidades usando 'Yo siento...' en lugar de acusaciones ('Tú eres...'). Enfócate en el comportamiento específico, no en atacar a la persona."
-                        *   "**Desarrolla la Empatía:** Intenta ponerte activamente en el lugar de [usar nombre_interlocutor si disponible]. ¿Cómo perciben ellos tus palabras/acciones? Escucha activamente su perspectiva sin interrumpir ni invalidar."
+                        *   "**Desarrolla la Empatía:** Intenta ponerte activamente en el lugar de [Determina según contexto: 'la otra persona'/'él'/'ella']. ¿Cómo perciben ellos tus palabras/acciones? Escucha activamente su perspectiva sin interrumpir ni invalidar."
                         *   "**Manejo de la Ira/Frustración:** Si reaccionas impulsivamente, busca técnicas de manejo de la ira (respiración profunda, tiempo fuera ANTES de explotar). La terapia individual es CLAVE aquí."
-                    *   **Responsabilidad y Reparación:** "Asumir la responsabilidad por el daño causado es esencial. Una disculpa sincera (sin excusas) y un cambio de comportamiento demostrable son necesarios si deseas reparar la relación. Considera preguntar a [usar nombre_interlocutor si disponible] qué necesita para sentirse seguro/a de nuevo."
+                    *   **Responsabilidad y Reparación:** "Asumir la responsabilidad por el daño causado es esencial. Una disculpa sincera (sin excusas) y un cambio de comportamiento demostrable son necesarios si deseas reparar la relación. Considera preguntar a [Determina según contexto: 'la otra persona'/'él'/'ella'] qué necesita para sentirse seguro/a de nuevo."
                     *   **Busca Ayuda Profesional:** Un terapeuta puede ayudarte a entender el origen de estos patrones (a menudo aprendidos) y a desarrollar estrategias de comunicación y regulación emocional más sanas. Es un signo de fortaleza buscar ayuda para cambiar.
 
                 *   **Si \`persona_afectada\` es \`ambos\` o \`grupo\`:**
@@ -254,7 +248,7 @@ async input => {
               recomendaciones: ["Error: No se pudo analizar la conversación. El modelo no proporcionó una respuesta válida."],
                posible_agresor: "ninguno", // Default value
                persona_afectada: "ninguno", // Default value
-               nombre_interlocutor: undefined, // Default value
+               // nombre_interlocutor removed
           }
       };
   }
@@ -292,3 +286,5 @@ async input => {
   return output; // Return the whole output object as defined in schema
 });
 
+
+    

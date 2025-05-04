@@ -361,10 +361,26 @@ export default function AnalyzerClient() {
    };
 
     // Helper function to get icon and tooltip based on affected person type
-    // Added interlocutorName parameter
-    const getAffectedInfo = (affectedType: AnalysisResult['persona_afectada'], userName: string | undefined, interlocutorName: string | undefined) => {
-        const uName = userName || "Usuario"; // Fallback name for user
-        const iName = interlocutorName || "La otra persona"; // Fallback or identified name for interlocutor
+    // Updated to determine interlocutor pronoun based on context
+    const getAffectedInfo = (affectedType: AnalysisResult['persona_afectada'], user: UserData | null) => {
+        const uName = user?.nombre || "Usuario"; // Fallback name for user
+
+        // Determine interlocutor pronoun
+        let interlocutorPronoun = "La otra persona"; // Default
+        if (user && user.relationshipType === 'pareja') {
+            if (user.genero === 'hombre') {
+                interlocutorPronoun = "Ella";
+            } else if (user.genero === 'mujer') {
+                interlocutorPronoun = "Él";
+            } else {
+                interlocutorPronoun = "Él/Ella"; // Neutral if user preferred not to say gender
+            }
+        } else if (user && (user.relationshipType === 'amistad' || user.relationshipType === 'familiar')) {
+             interlocutorPronoun = "Él/Ella"; // Use neutral for friendship/family
+        } else if (user && (user.relationshipType === 'laboral' || user.relationshipType === 'grupo')) {
+             interlocutorPronoun = "La otra persona / Grupo"; // Generic for work/group
+        }
+
 
         switch (affectedType) {
             case 'usuario':
@@ -376,8 +392,8 @@ export default function AnalyzerClient() {
             case 'interlocutor':
                 return {
                     icon: Target, // Icon indicating 'other' affected
-                    tooltip: `El análisis sugiere que ${iName} es la principal persona afectada.`,
-                    label: iName // Use the identified or fallback name
+                    tooltip: `El análisis sugiere que ${interlocutorPronoun} es la principal persona afectada.`,
+                    label: interlocutorPronoun // Use the determined pronoun
                 };
             case 'ambos':
                 return {
@@ -594,15 +610,15 @@ export default function AnalyzerClient() {
                            <Tooltip>
                               <TooltipTrigger asChild>
                                 <span> {/* Wrap icon in span for TooltipTrigger */}
-                                    {/* Pass user name and interlocutor name to getAffectedInfo */}
-                                   {React.createElement(getAffectedInfo(analysisResult.persona_afectada, userData?.nombre, analysisResult.nombre_interlocutor).icon, { className: "h-5 w-5 text-muted-foreground" })}
+                                    {/* Pass user data to getAffectedInfo */}
+                                   {React.createElement(getAffectedInfo(analysisResult.persona_afectada, userData).icon, { className: "h-5 w-5 text-muted-foreground" })}
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{getAffectedInfo(analysisResult.persona_afectada, userData?.nombre, analysisResult.nombre_interlocutor).tooltip}</p>
+                                <p>{getAffectedInfo(analysisResult.persona_afectada, userData).tooltip}</p>
                               </TooltipContent>
                            </Tooltip>
-                           <span className="text-sm text-foreground">{getAffectedInfo(analysisResult.persona_afectada, userData?.nombre, analysisResult.nombre_interlocutor).label}</span>
+                           <span className="text-sm text-foreground">{getAffectedInfo(analysisResult.persona_afectada, userData).label}</span>
                         </div>
                     </div>
                  </div>
@@ -680,3 +696,5 @@ export default function AnalyzerClient() {
     </TooltipProvider> // Close TooltipProvider
   );
 }
+
+    
