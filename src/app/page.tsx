@@ -123,7 +123,7 @@ export default function WelcomePage() {
             />
             <FeatureCard
               icon={HeartHandshake} // Using HeartHandshake for Autism/Empathy
-              title="Espectro Autista"
+              title="Relaciones Amorosas" // Changed title from Espectro Autista
               description="Reconociendo matices emocionales en la comunicación."
                imageUrl="https://picsum.photos/150/100?random=3"
                imageHint="support group diverse people"
