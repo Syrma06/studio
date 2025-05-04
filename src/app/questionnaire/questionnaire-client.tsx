@@ -50,9 +50,10 @@ const UserDataFormSchema = z.object({
     genero: z.enum(["hombre", "mujer", "prefiero_no_decirlo"], {
         required_error: "Debes seleccionar una opción de género.",
     }),
+    emailEmergencia: z.string().email({ message: "Por favor, ingresa un correo electrónico válido." }).optional().or(z.literal('')), // Make emergency email optional but validated if provided
 });
 
-// Add genero type to UserData
+// Add genero and emailEmergencia types to UserData
 type UserData = z.infer<typeof UserDataFormSchema>;
 
 export default function QuestionnaireClient() {
@@ -77,6 +78,7 @@ export default function QuestionnaireClient() {
         apellido: "",
         edad: undefined,
         genero: undefined,
+        emailEmergencia: "", // Default empty string
     },
   });
 
@@ -376,7 +378,7 @@ export default function QuestionnaireClient() {
                <DialogHeader>
                    <DialogTitle>Ingresa tus Datos</DialogTitle>
                    <DialogDescription>
-                       Estos datos se usarán para personalizar la descarga de tu análisis más adelante. No se almacenarán permanentemente.
+                       Estos datos se usarán para personalizar la descarga de tu análisis más adelante. No se almacenarán permanentemente. Proporciona un correo de emergencia si deseas que se notifique a alguien en caso de detectar un riesgo alto.
                    </DialogDescription>
                </DialogHeader>
                {/* Wrap user data form with FormProvider */}
@@ -463,6 +465,28 @@ export default function QuestionnaireClient() {
                              )}
                             />
 
+                           {/* Emergency Email Input */}
+                            <FormField
+                               control={userDataForm.control}
+                               name="emailEmergencia"
+                               render={({ field }) => (
+                                   <FormItem className="grid grid-cols-4 items-center gap-4">
+                                       <RHFFormLabel htmlFor="emailEmergencia" className="text-right">Correo de Emergencia <span className="text-xs text-muted-foreground">(Opcional)</span></RHFFormLabel>
+                                       <FormControl>
+                                           <Input
+                                              id="emailEmergencia"
+                                               type="email"
+                                               placeholder="ejemplo@dominio.com"
+                                               className="col-span-3"
+                                               aria-label="Correo electrónico de emergencia (opcional)"
+                                               {...field}
+                                           />
+                                       </FormControl>
+                                       <FormMessage className="col-span-4 text-right" />
+                                   </FormItem>
+                               )}
+                           />
+
 
                            <DialogFooter>
                                <DialogClose asChild>
@@ -505,26 +529,29 @@ export default function QuestionnaireClient() {
                     <p>La aplicación utiliza modelos de IA (Gemini) para analizar el texto proporcionado. La precisión del análisis puede variar y no está garantizada. La IA puede malinterpretar matices o contexto. Utiliza los resultados como un punto de partida para la reflexión, no como una verdad absoluta.</p>
 
                     <h3 className="font-semibold text-foreground">3. Privacidad y Datos</h3>
-                    <p>Respetamos tu privacidad. Las conversaciones que ingresas para análisis se procesan de forma segura y no se almacenan permanentemente asociadas a tu identidad después del análisis. Los datos del cuestionario (tipo de relación, respuestas a preguntas) y los datos personales (nombre, apellido, edad, género) se guardan temporalmente en el almacenamiento local de tu navegador (`localStorage`) únicamente para incluirlos en la descarga del análisis si decides hacerlo y para contextualizar el análisis de la IA. Estos datos no se envían a nuestros servidores de forma persistente.</p>
+                    <p>Respetamos tu privacidad. Las conversaciones que ingresas para análisis se procesan de forma segura y no se almacenan permanentemente asociadas a tu identidad después del análisis. Los datos del cuestionario (tipo de relación, respuestas a preguntas) y los datos personales (nombre, apellido, edad, género, correo de emergencia) se guardan temporalmente en el almacenamiento local de tu navegador (`localStorage`) únicamente para incluirlos en la descarga del análisis si decides hacerlo y para contextualizar el análisis de la IA y la función de notificación de emergencia. Estos datos no se envían a nuestros servidores de forma persistente para almacenamiento a largo plazo.</p>
                     <p>Podemos recopilar datos anónimos sobre el uso de la aplicación para mejorar nuestros servicios. Esto no incluirá el contenido de tus conversaciones ni tus datos personales identificables.</p>
 
-                    <h3 className="font-semibold text-foreground">4. Limitación de Responsabilidad</h3>
-                    <p>Alumbra se proporciona "tal cual", sin garantías de ningún tipo. El equipo de desarrollo no se hace responsable de las decisiones que tomes basadas en el análisis proporcionado. El uso de la aplicación es bajo tu propio riesgo. No somos responsables de ningún daño directo, indirecto, incidental o consecuente que surja del uso de esta herramienta.</p>
-                    <p>Si te encuentras en una situación de peligro inmediato, contacta a las autoridades locales o a una línea de ayuda especializada.</p>
+                    <h3 className="font-semibold text-foreground">4. Notificación de Emergencia (Opcional)</h3>
+                     <p>Si proporcionas un correo electrónico de emergencia, Alumbra intentará enviar una notificación a esa dirección si el análisis detecta un nivel de riesgo muy alto o indicadores específicos de peligro inminente (como ideación suicida explícita o amenazas graves). Esta función depende de la capacidad de la IA para identificar correctamente dichas situaciones y de la disponibilidad de servicios externos de envío de correo, por lo que no se garantiza su funcionamiento en todos los casos. El contenido de la notificación incluirá el nombre y apellido que proporcionaste, un resumen del análisis y, si es posible, una imagen adjunta del análisis detallado. El propósito es alertar a tu contacto de confianza sobre una posible situación de riesgo. Tú eres responsable de informar a tu contacto de emergencia que lo has designado y de obtener su consentimiento para recibir dichas notificaciones.</p>
 
-                    <h3 className="font-semibold text-foreground">5. Indemnización (¡Atención!)</h3>
+                    <h3 className="font-semibold text-foreground">5. Limitación de Responsabilidad</h3>
+                    <p>Alumbra se proporciona "tal cual", sin garantías de ningún tipo, incluyendo la función de notificación de emergencia. El equipo de desarrollo no se hace responsable de las decisiones que tomes basadas en el análisis proporcionado, ni de la falla o éxito de la notificación de emergencia. El uso de la aplicación es bajo tu propio riesgo. No somos responsables de ningún daño directo, indirecto, incidental o consecuente que surja del uso de esta herramienta.</p>
+                    <p>Si te encuentras en una situación de peligro inmediato, contacta a las autoridades locales o a una línea de ayuda especializada. No dependas únicamente de Alumbra para tu seguridad.</p>
+
+                    <h3 className="font-semibold text-foreground">6. Indemnización (¡Atención!)</h3>
                     <p>Aceptas defender, indemnizar y eximir de toda responsabilidad al equipo de desarrollo de Alumbra, sus afiliados, directores, empleados y agentes, de y contra cualquier reclamo, acción, demanda, responsabilidad, costos o gastos (incluidos honorarios legales razonables) que surjan de: (a) tu uso de la aplicación Alumbra; (b) tu violación de estos Términos y Condiciones; (c) cualquier contenido que envíes o transmitas a través de la aplicación; o (d) tu violación de los derechos de cualquier tercero. Esta obligación de defensa e indemnización sobrevivirá a estos Términos y a tu uso de la aplicación. (Aclaración irónica: Esta idea no es tomada de Ubisoft, cualquier parecido es pura coincidencia... guiño, guiño).</p>
 
-                    <h3 className="font-semibold text-foreground">6. Propiedad Intelectual</h3>
+                    <h3 className="font-semibold text-foreground">7. Propiedad Intelectual</h3>
                     <p>Todo el contenido y software de Alumbra, incluyendo el diseño, texto, gráficos y código, es propiedad del equipo de desarrollo o sus licenciantes y está protegido por leyes de propiedad intelectual. No puedes copiar, modificar, distribuir o realizar ingeniería inversa de ninguna parte de la aplicación sin permiso explícito.</p>
 
-                    <h3 className="font-semibold text-foreground">7. Modificaciones de los Términos</h3>
+                    <h3 className="font-semibold text-foreground">8. Modificaciones de los Términos</h3>
                     <p>Nos reservamos el derecho de modificar estos Términos y Condiciones en cualquier momento. Te notificaremos los cambios importantes. El uso continuado de la aplicación después de dichos cambios constituirá tu aceptación de los nuevos términos.</p>
 
-                    <h3 className="font-semibold text-foreground">8. Ley Aplicable</h3>
+                    <h3 className="font-semibold text-foreground">9. Ley Aplicable</h3>
                     <p>Estos términos se regirán e interpretarán de acuerdo con las leyes de la jurisdicción donde reside el equipo de desarrollo, sin tener en cuenta sus conflictos de principios legales.</p>
 
-                    <h3 className="font-semibold text-foreground">9. Contacto</h3>
+                    <h3 className="font-semibold text-foreground">10. Contacto</h3>
                     <p>Si tienes alguna pregunta sobre estos Términos y Condiciones, por favor contáctanos a través de los canales proporcionados (si existen).</p>
 
                     <p className="pt-4 font-bold">Al hacer clic en "Aceptar" en el cuestionario, confirmas que has leído, comprendido y aceptado estos Términos y Condiciones.</p>
@@ -540,5 +567,3 @@ export default function QuestionnaireClient() {
     </>
   );
 }
-
-    

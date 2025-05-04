@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from 'react';
@@ -24,7 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 // import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 // Removed Input import as it's no longer used here
 // import { Input } from "@/components/ui/input";
-import { Loader2, AlertCircle, Terminal, Download, ArrowLeft, UserCheck, UserX, Users, HelpCircle } from "lucide-react"; // Added ArrowLeft and icons for aggressor type
+import { Loader2, AlertCircle, Terminal, Download, ArrowLeft, UserCheck, UserX, Users, HelpCircle, Siren } from "lucide-react"; // Added ArrowLeft and icons for aggressor type, Siren for imminent risk
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Import Tooltip components
 
@@ -42,6 +41,7 @@ interface UserData {
     edad: number;
     genero: "hombre" | "mujer" | "prefiero_no_decirlo"; // Add gender
     relationshipType: "pareja" | "amistad" | "familiar"; // Add relationshipType
+    emailEmergencia?: string; // Add optional emergency email
     // Add other questionnaire fields if needed for context, though they aren't directly used in the analyze call
     makesYouDoubt?: "si" | "no";
     controlsYou?: "si" | "no";
@@ -51,7 +51,8 @@ interface UserData {
 
 
 export default function AnalyzerClient() {
-  const [analysisResult, setAnalysisResult] = React.useState<AnalyzeConversationOutput['analysisResult'] | null>(null); // Use the specific type from output
+  // Use the specific type from output which includes the nested analysisResult structure
+  const [analysisResult, setAnalysisResult] = React.useState<AnalyzeConversationOutput['analysisResult'] | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -75,6 +76,8 @@ export default function AnalyzerClient() {
             typeof parsedData.edad === 'number' &&
             ["hombre", "mujer", "prefiero_no_decirlo"].includes(parsedData.genero) && // Validate gender
             ["pareja", "amistad", "familiar"].includes(parsedData.relationshipType) // Validate relationshipType
+            // Emergency email is optional, but check if it's a string if present
+            && (parsedData.emailEmergencia === undefined || typeof parsedData.emailEmergencia === 'string')
             ) {
             setUserData(parsedData);
         } else {
@@ -105,7 +108,7 @@ export default function AnalyzerClient() {
        });
        router.push('/questionnaire'); // Redirect on error
     }
-  }, [router]); // Add router to dependency array
+  }, [router, toast]); // Add toast to dependency array
 
 
   const conversationForm = useForm<z.infer<typeof ConversationFormSchema>>({
@@ -133,11 +136,18 @@ export default function AnalyzerClient() {
     setAnalysisResult(null); // Clear previous results
 
     try {
-      // Prepare input for the analyze function, including gender and relationshipType
+      // Prepare input for the analyze function, including gender, relationshipType, and the whole userData object
       const input: AnalyzeConversationInput = {
           text: data.conversationText,
           generoUsuario: userData.genero,
           tipoRelacion: userData.relationshipType,
+          // Pass the entire userData object
+          userData: {
+              nombre: userData.nombre,
+              apellido: userData.apellido,
+              edad: userData.edad,
+              emailEmergencia: userData.emailEmergencia || '', // Ensure it's a string or empty string
+          },
        };
       const result: AnalyzeConversationOutput = await analyze(input);
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate slight delay if needed
@@ -226,16 +236,41 @@ export default function AnalyzerClient() {
 
                  if (clonedCard && clonedInfoElement) {
                     // Determine background color based on the computed style of the original card
-                    const cardStyle = window.getComputedStyle(analysisResultCardRef.current!);
+                    const originalCard = analysisResultCardRef.current;
+                    if (!originalCard) return;
+
+                    const cardStyle = window.getComputedStyle(originalCard);
                     const cardBgColor = cardStyle.backgroundColor;
 
                     // Determine text color based on background luminance (simple example)
-                    // You might need a more sophisticated luminance calculation
-                    const isDarkBg = cardBgColor.startsWith('rgb') && parseInt(cardBgColor.split(',')[1]) < 128; // Very basic check
+                    // You might need a more sophisticated luminance calculation or use theme variables
+                    const isDarkBg = (element: Element) => {
+                        const bgColor = window.getComputedStyle(element).backgroundColor;
+                        if (!bgColor || bgColor === 'transparent') return false; // Default to light if no bg
+                         try {
+                            const rgb = bgColor.match(/\d+/g);
+                            if (!rgb) return false;
+                            // Simple luminance check (adjust threshold as needed)
+                            const luminance = 0.2126 * parseInt(rgb[0]) + 0.7152 * parseInt(rgb[1]) + 0.0722 * parseInt(rgb[2]);
+                            return luminance < 128;
+                         } catch (e) {
+                             return false; // Default to light on error
+                         }
+                    };
+
 
                     clonedCard.style.backgroundColor = cardBgColor; // Explicitly set card background from computed style
-                    clonedInfoElement.style.color = isDarkBg ? '#eee' : '#333'; // Adjust text color based on bg
-                    clonedInfoElement.style.backgroundColor = isDarkBg ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.8)'; // Adjust info bg
+
+                    // Adjust text color based on bg
+                    if (isDarkBg(originalCard)) {
+                        clonedInfoElement.style.color = '#eee'; // Light text for dark bg
+                        clonedInfoElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                    } else {
+                         clonedInfoElement.style.color = '#333'; // Dark text for light bg
+                         clonedInfoElement.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+                    }
+
+
                  }
              }
         });
@@ -282,6 +317,7 @@ export default function AnalyzerClient() {
 
   // Function to get progress bar color based on risk level
   const getProgressColor = (level: number) => {
+    if (level >= 90) return 'bg-red-700 animate-pulse'; // Darker pulsing red for imminent risk
     if (level > 75) return 'bg-destructive'; // Red for high risk
     if (level > 50) return 'bg-yellow-500'; // Yellow for medium risk
     return 'bg-primary'; // Blue for low risk (using primary color)
@@ -382,6 +418,11 @@ export default function AnalyzerClient() {
                  <Skeleton className="h-4 w-2/3 mt-2" /> {/* Added margin */}
                </CardHeader>
                <CardContent className="space-y-6"> {/* Increased spacing */}
+                 {/* Skeleton for Imminent Risk */}
+                  <div className="space-y-2">
+                     <Skeleton className="h-4 w-1/4" />
+                     <Skeleton className="h-6 w-40" />
+                  </div>
                  <div className="space-y-2">
                     <Skeleton className="h-4 w-1/4" />
                     <Skeleton className="h-10 w-full" /> {/* Taller for progress */}
@@ -431,18 +472,47 @@ export default function AnalyzerClient() {
             <Card ref={analysisResultCardRef} data-testid="analysis-card" className="w-full">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-primary">Resultados del Análisis Alumbra</CardTitle> {/* Changed title */}
-                <CardDescription>Evaluación de riesgo basada en el texto y contexto proporcionados.</CardDescription>
+                 {analysisResult.riesgo_inminente && (
+                     <Alert variant="destructive" className="mt-2">
+                         <Siren className="h-5 w-5" />
+                         <AlertTitle className="font-bold">¡ALERTA DE RIESGO INMINENTE!</AlertTitle>
+                         <AlertDescription>
+                            Se ha detectado una situación de posible peligro inmediato. Por favor, lee las recomendaciones con urgencia y busca ayuda profesional.
+                         </AlertDescription>
+                     </Alert>
+                 )}
+                <CardDescription className={analysisResult.riesgo_inminente ? 'mt-1' : 'mt-2'}> {/* Adjust margin */}
+                   Evaluación basada en el texto y contexto proporcionados.
+                   {analysisResult.resumen_riesgo && (
+                       <span className="block text-sm text-muted-foreground mt-1">
+                           <strong>Resumen:</strong> {analysisResult.resumen_riesgo}
+                        </span>
+                   )}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Risk Level */}
                 <div>
-                  <Label>Nivel de Riesgo General ({analysisResult.nivel_riesgo} / 100)</Label>
-                  <Progress
-                    value={analysisResult.nivel_riesgo}
-                    className="w-full h-3 mt-1"
-                    indicatorClassName={getProgressColor(analysisResult.nivel_riesgo)}
-                    aria-label={`Nivel de riesgo ${analysisResult.nivel_riesgo} de 100`}
-                  />
+                   <Label>Nivel de Riesgo General ({analysisResult.nivel_riesgo} / 100)</Label>
+                   <Tooltip>
+                      <TooltipTrigger asChild>
+                         <Progress
+                            value={analysisResult.nivel_riesgo}
+                            className="w-full h-3 mt-1 cursor-help" // Add cursor-help
+                            indicatorClassName={getProgressColor(analysisResult.nivel_riesgo)}
+                            aria-label={`Nivel de riesgo ${analysisResult.nivel_riesgo} de 100`}
+                          />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                         <p>
+                           {analysisResult.nivel_riesgo < 50 ? 'Riesgo bajo: Pocas o ninguna señal preocupante detectada.' :
+                           analysisResult.nivel_riesgo < 75 ? 'Riesgo medio: Se detectaron algunas señales de alerta. Considera las recomendaciones.' :
+                           analysisResult.nivel_riesgo < 90 ? 'Riesgo alto: Se detectaron señales significativas de abuso o manipulación. Presta atención a las recomendaciones.' :
+                           'Riesgo muy alto/inminente: Situación potencialmente peligrosa. Busca ayuda urgente.'}
+                         </p>
+                       </TooltipContent>
+                   </Tooltip>
+
                 </div>
 
                  {/* Possible Aggressor */}
@@ -469,7 +539,7 @@ export default function AnalyzerClient() {
                     <Label>Categorías Detectadas</Label>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {analysisResult.categorias_detectadas.map((category, index) => (
-                        <Badge key={index} variant={index % 2 === 0 ? "secondary" : "outline"} className="capitalize">
+                        <Badge key={index} variant={category.includes('suicida') || category.includes('amenaza') ? 'destructive' : (index % 2 === 0 ? "secondary" : "outline")} className="capitalize">
                           {category.replace(/_/g, ' ')}
                         </Badge>
                       ))}
@@ -497,11 +567,11 @@ export default function AnalyzerClient() {
 
                  {/* Detailed Recommendations */}
                  {analysisResult.recomendaciones.length > 0 && (
-                     <div className="pt-2"> {/* Added spacing */}
-                        <Label>Recomendaciones Detalladas</Label> {/* Enhanced label */}
+                     <div className={`pt-2 ${analysisResult.riesgo_inminente ? 'border-t-2 border-destructive mt-4' : ''}`}> {/* Add separator if imminent risk */}
+                        <Label className={`font-semibold ${analysisResult.riesgo_inminente ? 'text-destructive' : ''}`}>Recomendaciones Detalladas</Label> {/* Enhanced label */}
                         <ul className="list-disc list-inside space-y-2 text-sm text-foreground mt-1 pl-2"> {/* Changed text color and added padding */}
                           {analysisResult.recomendaciones.map((rec, index) => (
-                            <li key={index}>{rec}</li>
+                            <li key={index} dangerouslySetInnerHTML={{ __html: rec.replace(/(\*\*|__)(.*?)\1/g, '<strong>$2</strong>') }}></li> // Basic bold formatting for markdown-like bold
                           ))}
                         </ul>
                      </div>
@@ -535,5 +605,3 @@ export default function AnalyzerClient() {
     </TooltipProvider> // Close TooltipProvider
   );
 }
-
-    

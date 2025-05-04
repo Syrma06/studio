@@ -9,6 +9,14 @@
     */
    nivel_riesgo: number;
    /**
+    * Indica si se detecta un riesgo alto e inminente de daño físico o suicidio.
+    */
+    riesgo_inminente: boolean;
+    /**
+     * Un breve resumen (1-2 frases) explicando la naturaleza del riesgo detectado.
+     */
+    resumen_riesgo: string;
+   /**
     * Categorías de abuso detectadas en la conversación.
     */
    categorias_detectadas: string[];
@@ -44,6 +52,8 @@
 
    // Example logic to vary results based on input length or content (kept for reference)
    let riskLevel = 30; // Lower default risk for mock
+   let imminentRisk = false;
+   let riskSummary = "No se detectaron riesgos significativos (Mock).";
    const categories = new Set<string>();
    const examples = new Set<string>();
    const recommendations = new Set<string>([
@@ -59,6 +69,7 @@
      examples.add("“Si de verdad me quisieras, harías...” (detectado por mock)");
      recommendations.add('Mock: Cuestiona las condiciones en el afecto.');
      possibleAggressor = 'interlocutor'; // Assume interlocutor for mock
+     riskSummary = "Riesgo de manipulación emocional (Mock)."
    }
     if (text.toLowerCase().includes("you're crazy") || text.toLowerCase().includes("estás loco") || text.toLowerCase().includes("estás loca")) {
      riskLevel = Math.max(riskLevel, 85);
@@ -66,6 +77,7 @@
      examples.add("“Estás exagerando/loco/loca.” (detectado por mock)");
      recommendations.add('Mock: El gaslighting busca invalidarte. Confía en ti.');
       possibleAggressor = 'interlocutor'; // Assume interlocutor for mock
+      riskSummary = "Riesgo de gaslighting (Mock)."
    }
     if (text.toLowerCase().includes("nobody else understands you") || text.toLowerCase().includes("nadie más te va a entender")) {
      riskLevel = Math.max(riskLevel, 80);
@@ -73,6 +85,7 @@
      examples.add("“Nadie más te entiende como yo.” (detectado por mock)");
      recommendations.add('Mock: Fomentar el aislamiento es una señal de alerta.');
       possibleAggressor = 'interlocutor'; // Assume interlocutor for mock
+      riskSummary = "Riesgo de aislamiento social (Mock)."
    }
    if (text.toLowerCase().includes("you always") || text.toLowerCase().includes("you never") || text.toLowerCase().includes("siempre haces") || text.toLowerCase().includes("nunca haces")) {
      riskLevel = Math.max(riskLevel, 60);
@@ -87,6 +100,7 @@
      examples.add("“Es tu culpa que me enoje.” (detectado por mock)");
      recommendations.add('Mock: No eres responsable de las emociones ajenas.');
       possibleAggressor = 'interlocutor'; // Assume interlocutor for mock
+      riskSummary = "Riesgo de culpabilización (Mock)."
    }
 
    // Example for user as aggressor (mock)
@@ -96,26 +110,50 @@
         examples.add("“Me haces enojar.” (detectado por mock)");
         recommendations.add('Mock (Usuario): Asume responsabilidad por tus emociones.');
         possibleAggressor = 'usuario'; // Set user as aggressor for mock
+        riskSummary = "Posible culpabilización ejercida por el usuario (Mock)."
+    }
+
+   // Mock imminent risk detection
+    if (text.toLowerCase().includes("quiero morir") || text.toLowerCase().includes("matarme")) {
+       riskLevel = 95;
+       imminentRisk = true;
+       categories.add("ideacion_suicida");
+       examples.add("“...quiero morir...” (detectado por mock)");
+       riskSummary = "RIESGO INMINENTE: Ideación suicida detectada (Mock).";
+       recommendations.clear(); // Clear previous recommendations
+       recommendations.add("**Mock URGENTE:** Contacta ayuda profesional INMEDIATAMENTE (ej. línea de crisis).");
+       recommendations.add("Mock: Habla con alguien de confianza ahora mismo.");
+    }
+     if (text.toLowerCase().includes("te voy a matar") || text.toLowerCase().includes("voy a hacerte daño")) {
+       riskLevel = 98;
+       imminentRisk = true;
+       categories.add("amenaza_directa");
+       examples.add("“...te voy a matar...” (detectado por mock)");
+       riskSummary = "RIESGO INMINENTE: Amenaza directa de violencia detectada (Mock).";
+       recommendations.clear(); // Clear previous recommendations
+       recommendations.add("**Mock URGENTE:** Tu seguridad es prioritaria. Busca un lugar seguro y contacta a las autoridades.");
+       recommendations.add("Mock: Informa a alguien de confianza sobre la amenaza.");
     }
 
 
-   // Add default recommendations if high risk detected
-   if (riskLevel > 70) {
+   // Add default recommendations if high risk detected (but not imminent)
+   if (riskLevel > 70 && !imminentRisk) {
         recommendations.add('Mock: Considera buscar apoyo si el riesgo es alto.');
         recommendations.add('Mock: Habla con alguien de confianza.');
    }
 
    // Simple risk adjustment based on length
    riskLevel = Math.min(100, riskLevel + Math.floor(text.length / 150)); // Adjusted mock logic
+   if (imminentRisk) riskLevel = Math.max(90, riskLevel); // Ensure imminent risk is high
 
 
    return {
      nivel_riesgo: riskLevel,
+     riesgo_inminente: imminentRisk,
+     resumen_riesgo: riskSummary,
      categorias_detectadas: Array.from(categories),
      ejemplos: Array.from(examples),
      recomendaciones: Array.from(recommendations),
      posible_agresor: possibleAggressor, // Return determined aggressor
    };
  }
-
-    
