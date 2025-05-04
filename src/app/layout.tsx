@@ -3,8 +3,6 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/theme-provider"; // Import ThemeProvider
-import { ThemeToggle } from "@/components/theme-toggle"; // Import ThemeToggle
 
 export const metadata: Metadata = {
   title: 'Alumbra',
@@ -18,20 +16,11 @@ export default function RootLayout({
 }>) {
   return (
     // Ensure no whitespace between <html> and <body> tags
-    <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning><body className={`antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="fixed bottom-4 right-4 z-50"> {/* Position ThemeToggle */}
-            <ThemeToggle />
-          </div>
+    <html lang="es" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning><body className={`antialiased dark`}>
           {children}
           <Toaster />
-        </ThemeProvider>
       </body>
     </html>
   );
 }
+
