@@ -344,12 +344,18 @@ export default function AnalyzerClient() {
                   tooltip: 'El análisis sugiere comportamientos problemáticos por AMBAS PARTES o no está claro.',
                   label: 'Ambigüo / Ambos'
               };
+            case 'externo':
+              return {
+                  icon: HelpCircle, // Consider a different icon for external? Maybe Globe?
+                  tooltip: 'El análisis sugiere que el comportamiento problemático está fuertemente influenciado por factores externos (ideologías, grupos, etc.).',
+                  label: 'Influencia Externa'
+              };
           case 'ninguno':
           default:
               return {
                   icon: HelpCircle,
                   tooltip: 'No se detectaron señales significativas de abuso o manipulación como origen principal.',
-                  label: 'Ninguno / Externo' // Consider external influence if not 'ninguno'
+                  label: 'Ninguno / No claro'
                };
       }
    };
@@ -469,12 +475,12 @@ export default function AnalyzerClient() {
                     <Skeleton className="h-10 w-full" /> {/* Taller for progress */}
                  </div>
                   {/* Skeleton for Dynamics (Aggressor & Affected) */}
-                 <div className="flex space-x-8"> {/* Flex container for dynamics */}
-                    <div className="space-y-2 w-1/2">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> {/* Grid layout for dynamics */}
+                    <div className="space-y-2">
                         <Skeleton className="h-4 w-1/2" />
                         <Skeleton className="h-6 w-32" />
                     </div>
-                     <div className="space-y-2 w-1/2">
+                     <div className="space-y-2">
                         <Skeleton className="h-4 w-1/2" />
                         <Skeleton className="h-6 w-32" />
                      </div>
@@ -487,6 +493,11 @@ export default function AnalyzerClient() {
                         <Skeleton className="h-6 w-28 rounded-full" />
                      </div>
                   </div>
+                   {/* Skeleton for Summary */}
+                   <div className="space-y-2">
+                       <Skeleton className="h-4 w-1/4" />
+                       <Skeleton className="h-5 w-full" />
+                   </div>
                   <div className="space-y-2">
                      <Skeleton className="h-4 w-1/4" />
                      <Skeleton className="h-5 w-full" />
@@ -494,14 +505,8 @@ export default function AnalyzerClient() {
                      <Skeleton className="h-5 w-4/6" />
                   </div>
                </CardContent>
-               <CardFooter className="flex flex-col items-start space-y-2"> {/* Adjusted layout */}
-                  <Skeleton className="h-4 w-1/4 mb-1"/> {/* Reduced margin */}
-                  <Skeleton className="h-5 w-full" />
-                  <Skeleton className="h-5 w-full" />
-                  <Skeleton className="h-5 w-4/5" />
-                   <div className="flex justify-end w-full mt-4"> {/* Button skeleton */}
-                      <Skeleton className="h-10 w-36"/>
-                   </div>
+               <CardFooter className="flex justify-end w-full mt-4"> {/* Button skeleton */}
+                  <Skeleton className="h-10 w-36"/>
                </CardFooter>
             </Card>
           )}
@@ -675,5 +680,3 @@ export default function AnalyzerClient() {
     </TooltipProvider> // Close TooltipProvider
   );
 }
-
-```
