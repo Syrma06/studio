@@ -116,14 +116,14 @@ export default function WelcomePage() {
       <section className="w-full py-12 md:py-20 lg:py-24 bg-muted/30"> {/* Changed background to muted */}
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold tracking-tighter text-center mb-10 sm:text-4xl md:text-5xl text-primary">
-            ¿Para Quién es Alumbra?
+            ¿Qué relaciones puedes entender mejor con Alumbra?
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <FeatureCard
               icon={Users}
               title="Relaciones Personales"
               description="Identifica señales de estrés y tensiones en tus relaciones cotidianas."
-              imageUrl="https://www.freepik.es/vector-gratis/ilustracion-vector-concepto-abstracto-manipulacion-psicologica-abuso-mental-psicologia-oscura-chantaje-emocional-ingenieria-social-efecto-luz-gas-metafora-abstracta-manipulacion-cerebral_12469758.htm" // Updated random seed
+              imageUrl="https://img.freepik.com/vector-gratis/ilustracion-vector-concepto-abstracto-manipulacion-psicologica-abuso-mental-psicologia-oscura-chantaje-emocional-ingenieria-social-efecto-luz-gas-metafora-abstracta-manipulacion-cerebral_12469758.jpg?w=740&t=st=1717523852~exp=1717524452~hmac=34c22df039d383728d7506d1b0dd80e10903f55f5f4f26835d39a6945e754073" // Updated with direct image URL
               imageHint="psychological manipulation mental abuse drawing" // Updated hint
             />
             <FeatureCard
@@ -161,4 +161,3 @@ export default function WelcomePage() {
     </main>
   );
 }
-
