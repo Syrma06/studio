@@ -117,7 +117,7 @@ export default function WelcomePage() {
             <FeatureCard
               icon={Home} // Changed icon
               title="Relaciones Familiares" // Changed title
-              description="Analiza dinámicas y tensiones en el ámbito familiar." // Changed description
+              description="Detecta conflictos emocionales y mejora la comunicación con tus seres queridos." // Changed description
                imageUrl="https://picsum.photos/150/100?random=2"
               imageHint="family discussion argument" // Changed image hint
             />
