@@ -92,7 +92,6 @@ export async function sendEmergencyEmail(payload: EmergencyEmailPayload): Promis
  * @returns An HTML string representation of the key analysis details.
  */
 function formatAnalysisDetailsForHtmlEmail(details: AnalysisResult): string {
-    // Removed interlocutorName from parameters
     const affectedPersonDisplay = getAffectedPersonDisplayText(details.persona_afectada);
     let html = `<p><strong>Nivel de Riesgo:</strong> ${details.nivel_riesgo}/100</p>`;
     html += `<p><strong>Riesgo Inminente Detectado:</strong> ${details.riesgo_inminente ? '<strong>Sí</strong>' : 'No'}</p>`;
@@ -123,7 +122,6 @@ function formatAnalysisDetailsForHtmlEmail(details: AnalysisResult): string {
  * @returns A plain text string representation of the key analysis details.
  */
 function formatAnalysisDetailsForTextEmail(details: AnalysisResult): string {
-    // Removed interlocutorName from parameters
     const affectedPersonDisplay = getAffectedPersonDisplayText(details.persona_afectada);
     let text = `Nivel de Riesgo: ${details.nivel_riesgo}/100\n`;
     text += `Riesgo Inminente Detectado: ${details.riesgo_inminente ? 'Sí' : 'No'}\n`;
@@ -151,12 +149,11 @@ function formatAnalysisDetailsForTextEmail(details: AnalysisResult): string {
  * @returns A display string for the affected person.
  */
 function getAffectedPersonDisplayText(affectedType: AnalysisResult['persona_afectada']): string {
-    // Removed interlocutorName parameter
     switch (affectedType) {
         case 'usuario':
             return 'El usuario que proporcionó la conversación';
         case 'interlocutor':
-             // Using generic terms instead of name/pronoun
+             // Using generic terms instead of name/pronoun for simplicity as name detection was removed
             return 'La otra persona';
         case 'ambos':
             return 'Ambas partes';

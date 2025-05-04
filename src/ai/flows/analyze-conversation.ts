@@ -9,7 +9,7 @@
  * - AnalyzeConversationOutput - El tipo de retorno para la función analyze.
  */
 
-import {ai} from '@/ai/ai-instance';
+import {ai} from '@/ai/ai-instance'; // Correctly imports the Genkit instance using googleAI plugin
 import {z} from 'genkit';
 import type { AnalysisResult } from '@/services/shadai'; // Keep type import
 // Import the actual email sending function
@@ -17,10 +17,8 @@ import { sendEmergencyEmail } from '@/services/email';
 
 const AnalyzeConversationInputSchema = z.object({
   text: z.string().describe('El texto de la conversación a analizar.'),
-  // Add gender and relationshipType to input schema
   generoUsuario: z.enum(["hombre", "mujer", "prefiero_no_decirlo"]).describe('El género del usuario que proporciona la conversación.'),
-  tipoRelacion: z.enum(["pareja", "amistad", "familiar", "laboral", "grupo"]).describe('El tipo de relación entre las personas en la conversación.'), // Added laboral, grupo
-  // Add user data for context, including optional emergency email
+  tipoRelacion: z.enum(["pareja", "amistad", "familiar", "laboral", "grupo"]).describe('El tipo de relación entre las personas en la conversación.'),
   userData: z.object({
     nombre: z.string(),
     apellido: z.string(),
@@ -30,7 +28,6 @@ const AnalyzeConversationInputSchema = z.object({
 });
 export type AnalyzeConversationInput = z.infer<typeof AnalyzeConversationInputSchema>;
 
-// Reuse the existing AnalysisResult interface structure within the Zod schema
 const AnalyzeConversationOutputSchema = z.object({
   analysisResult: z.object({
     nivel_riesgo: z
@@ -50,13 +47,11 @@ const AnalyzeConversationOutputSchema = z.object({
       .array(z.string())
       .describe('Recomendaciones específicas, detalladas y accionables para la persona que experimenta la conversación, basadas directamente en las categorías y ejemplos detectados. Deben ser elaboradas y explicar el *por qué* de la recomendación en relación al análisis, considerando el contexto de género, la posibilidad de que el usuario sea el agresor, quién es la persona afectada y la presencia de riesgo inminente. Evitar consejos genéricos. Menciona si el comportamiento parece influenciado por fuentes externas si es relevante.'),
      posible_agresor: z
-      .enum(["usuario", "interlocutor", "ambiguo", "ninguno", "externo"]) // Added 'externo'
+      .enum(["usuario", "interlocutor", "ambiguo", "ninguno", "externo"])
       .describe('Identificación de quién o qué parece ser el principal origen del comportamiento problemático según el análisis. "usuario" si parece ser la persona que envió el texto, "interlocutor" si parece ser la otra persona, "ambiguo" si no está claro o ambos participan, "ninguno" si no se detecta abuso significativo, "externo" si el comportamiento parece imitado o influenciado por fuentes externas (medios, ideologías, etc.).'),
-     persona_afectada: z // Added field
+     persona_afectada: z
         .enum(["usuario", "interlocutor", "ambos", "grupo", "ninguno"])
         .describe('Identificación de quién parece ser la principal persona afectada negativamente por el comportamiento problemático detectado. "usuario" si es la persona que envió el texto, "interlocutor" si es la otra persona (o principal interlocutor), "ambos" si ambas partes se ven afectadas negativamente, "grupo" si el impacto negativo es en varias personas de un grupo, "ninguno" si no se detecta un impacto negativo claro en nadie.'),
-     // nombre_interlocutor field REMOVED from schema
-
   }).describe('El resultado detallado del análisis de la conversación.')
 });
 export type AnalyzeConversationOutput = z.infer<typeof AnalyzeConversationOutputSchema>;
@@ -66,24 +61,21 @@ export async function analyze(input: AnalyzeConversationInput): Promise<AnalyzeC
   const result = await analyzeConversationFlow(input);
 
   // --- Emergency Email Logic ---
-  // Check if risk is high and emergency email is provided and valid
   const isValidEmail = input.userData?.emailEmergencia && input.userData.emailEmergencia.includes('@');
 
   if (result.analysisResult.riesgo_inminente && isValidEmail) {
       console.log(`Alto riesgo detectado para ${input.userData.nombre} ${input.userData.apellido}. Intentando notificar a ${input.userData.emailEmergencia}.`);
 
       try {
-           // Call the actual email sending function
            const emailSent = await sendEmergencyEmail({
-             to: input.userData.emailEmergencia!, // Non-null assertion because isValidEmail checks it
+             to: input.userData.emailEmergencia!,
              userName: `${input.userData.nombre} ${input.userData.apellido}`,
              riskSummary: result.analysisResult.resumen_riesgo,
-             analysisDetails: result.analysisResult // Pass the full analysis result object
+             analysisDetails: result.analysisResult
            });
 
            if (emailSent) {
              console.log("Correo de emergencia enviado exitosamente.");
-             // Add a note to recommendations indicating successful notification attempt
               result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se intentó notificar a tu contacto de emergencia sobre la situación de riesgo.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
            } else {
              console.error("Fallo al enviar el correo de emergencia (servicio reportó error).");
@@ -92,12 +84,10 @@ export async function analyze(input: AnalyzeConversationInput): Promise<AnalyzeC
 
       } catch (emailError) {
         console.error("Error CRÍTICO al intentar enviar correo de emergencia:", emailError);
-         // Add a note indicating failure
           result.analysisResult.recomendaciones.push("<strong>**AVISO:** Ocurrió un error inesperado al intentar notificar al contacto de emergencia.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
       }
   } else if (result.analysisResult.riesgo_inminente) {
        console.warn(`Alto riesgo detectado para ${input.userData.nombre} ${input.userData.apellido}, pero no se proporcionó un correo de emergencia válido.`);
-       // Add a note indicating no valid email was provided
         result.analysisResult.recomendaciones.push("<strong>**AVISO:** Se detectó un riesgo alto, pero no proporcionaste un correo de emergencia válido para notificar.</strong> Busca ayuda profesional o de emergencia inmediatamente.");
   }
 
@@ -233,28 +223,25 @@ const analyzeConversationFlow = ai.defineFlow<
 },
 async input => {
   console.log("Analizando con Input:", input); // Log input for debugging
-  const { output } = await analysisPrompt(input);
+  const { output } = await analysisPrompt(input); // Calls the prompt defined above, which uses the Genkit instance 'ai'
 
-  if (!output || !output.analysisResult) { // Check if analysisResult exists
+  if (!output || !output.analysisResult) {
       console.error("El modelo no devolvió una salida válida o completa.");
-      // Return a default/error structure matching the schema
       return {
           analysisResult: {
               nivel_riesgo: 0,
-              riesgo_inminente: false, // Default to false
+              riesgo_inminente: false,
               resumen_riesgo: "Error: El modelo no proporcionó una respuesta válida.",
               categorias_detectadas: [],
               ejemplos: [],
               recomendaciones: ["Error: No se pudo analizar la conversación. El modelo no proporcionó una respuesta válida."],
-               posible_agresor: "ninguno", // Default value
-               persona_afectada: "ninguno", // Default value
-               // nombre_interlocutor removed
+               posible_agresor: "ninguno",
+               persona_afectada: "ninguno",
           }
       };
   }
 
    // Basic keyword check for imminent risk (redundancy layer)
-   // Refined keywords and logic
    const suicidalKeywords = ["suicidarme", "matarme", "desaparecer", "no quiero vivir", "acabar con todo", "quitarme la vida", "ya no puedo más"];
    const threatKeywords = ["te voy a matar", "te voy a hacer daño", "voy a lastimarte", "te arrepentirás", "mereces que te pase algo malo"];
    const conversationLower = input.text.toLowerCase();
@@ -263,28 +250,18 @@ async input => {
    if (suicidalKeywords.some(keyword => conversationLower.includes(keyword)) ||
        threatKeywords.some(keyword => conversationLower.includes(keyword))) {
        highRiskKeywordDetected = true;
-       // If keywords detected but AI didn't flag it, log a warning but trust the AI's overall assessment unless keywords are extremely explicit.
-       // Avoid automatically overriding unless confidence is very high (e.g., "te voy a matar").
        if (!output.analysisResult.riesgo_inminente && (conversationLower.includes("te voy a matar") || conversationLower.includes("me voy a matar"))) {
             console.warn("Palabra clave de riesgo MUY ALTO detectada, pero la IA no marcó riesgo_inminente=true. FORZANDO RIESGO ALTO.");
-            // Override in extremely clear cases
             output.analysisResult.riesgo_inminente = true;
-            output.analysisResult.nivel_riesgo = Math.max(output.analysisResult.nivel_riesgo, 95); // Force high risk level
+            output.analysisResult.nivel_riesgo = Math.max(output.analysisResult.nivel_riesgo, 95);
             output.analysisResult.resumen_riesgo = output.analysisResult.resumen_riesgo + " (RIESGO INMINENTE FORZADO POR PALABRA CLAVE EXPLÍCITA)";
-             // Add a critical recommendation if overridden
              output.analysisResult.recomendaciones.unshift("**URGENTE:** Se detectó una palabra clave de riesgo crítico. Busca ayuda de emergencia inmediatamente.");
        } else if (!output.analysisResult.riesgo_inminente) {
            console.warn("Palabra clave de riesgo detectada, pero la IA no marcó riesgo_inminente=true. Revisar análisis.");
-           // Optionally add a less critical note to recommendations
-           // output.analysisResult.recomendaciones.push("Nota: Se detectaron palabras clave potencialmente preocupantes, aunque el análisis general no indicó riesgo inminente.");
        }
    }
 
 
-  console.log("Resultado del análisis:", output.analysisResult); // Log output for debugging
-  // Assuming the prompt output schema is directly AnalyzeConversationOutputSchema:
-  return output; // Return the whole output object as defined in schema
+  console.log("Resultado del análisis:", output.analysisResult);
+  return output;
 });
-
-
-    

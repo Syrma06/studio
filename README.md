@@ -1,6 +1,6 @@
 # Alumbra
 
-Esta es una aplicación Next.js que analiza conversaciones en busca de señales de abuso emocional o manipulación utilizando IA (Gemini a través de Genkit).
+Esta es una aplicación Next.js que analiza conversaciones en busca de señales de abuso emocional o manipulación utilizando IA (específicamente el modelo Gemini de Google, a través de Genkit).
 
 ## Ejecutar la Aplicación Localmente
 
@@ -20,16 +20,19 @@ Para ejecutar la aplicación en tu máquina local, sigue estos pasos:
     *   Crea un archivo llamado `.env` en la raíz del proyecto si no existe.
     *   Abre el archivo `.env` y añade tus claves API:
         ```dotenv
-        GOOGLE_GENAI_API_KEY=TU_CLAVE_API_DE_GOOGLE_GENAI_AQUI
+        # --- Configuración de Google Gemini (a través de Genkit) ---
+        # 1. Obtén una clave API de Google AI Studio (anteriormente MakerSuite): https://aistudio.google.com/app/apikey
+        GOOGLE_GENAI_API_KEY=TU_CLAVE_API_DE_GOOGLE_AQUÍ
 
         # --- Configuración de SendGrid (para correos de emergencia) ---
         # 1. Crea una cuenta en SendGrid (https://sendgrid.com/)
         # 2. Genera una Clave API. Asegúrate de darle permisos para enviar correos ('Mail Send').
         # 3. Verifica un dominio o una dirección de correo electrónico para usar como remitente ('From').
-        SENDGRID_API_KEY=TU_CLAVE_API_DE_SENDGRID_AQUI
+        SENDGRID_API_KEY=TU_CLAVE_API_DE_SENDGRID_AQUÍ
         SENDGRID_FROM_EMAIL=tu_correo_verificado@ejemplo.com
         ```
-        **Importante:** Reemplaza `TU_CLAVE_API_DE_GOOGLE_GENAI_AQUI`, `TU_CLAVE_API_DE_SENDGRID_AQUI` y `tu_correo_verificado@ejemplo.com` con tus valores reales. **Nunca compartas tus claves API públicamente.**
+        **Importante:** Reemplaza `TU_CLAVE_API_DE_GOOGLE_AQUÍ`, `TU_CLAVE_API_DE_SENDGRID_AQUÍ` y `tu_correo_verificado@ejemplo.com` con tus valores reales.
+        **¡NUNCA INCLUYAS CREDENCIALES NI CLAVES API DIRECTAMENTE EN EL CÓDIGO FUENTE NI LAS COMPARTAS PÚBLICAMENTE!** Utiliza siempre el archivo `.env` (que debe estar en tu `.gitignore`).
 
 3.  **Ejecutar el servidor de desarrollo:**
     Inicia el servidor de desarrollo de Next.js usando el siguiente comando:
@@ -51,7 +54,7 @@ La aplicación utiliza Next.js, que renderiza páginas dinámicamente. No hay un
 
 La aplicación puede enviar un correo electrónico a un contacto de emergencia si detecta un riesgo inminente (ej. ideación suicida, amenazas directas) durante el análisis de la conversación.
 
-*   **Configuración:** Esta funcionalidad requiere una clave API de SendGrid y una dirección de correo electrónico de remitente verificada, configuradas en el archivo `.env` como se describió anteriormente.
+*   **Configuración:** Esta funcionalidad requiere una clave API de SendGrid y una dirección de correo electrónico de remitente verificada, configuradas en el archivo `.env` como se describió anteriormente. **No uses credenciales de Gmail directamente en el código.**
 *   **Uso:** El usuario tiene la opción de proporcionar un correo electrónico de emergencia al completar el cuestionario inicial.
 *   **Activación:** Si la IA marca `riesgo_inminente` como `true` en el análisis Y el usuario proporcionó un correo de emergencia, la aplicación intentará enviar una notificación a ese correo utilizando SendGrid.
 *   **Contenido del Correo:** El correo incluye el nombre del usuario, un resumen del riesgo detectado y detalles clave del análisis.
