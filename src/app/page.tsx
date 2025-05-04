@@ -38,8 +38,9 @@ function HeroSection1() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="bg-secondary/50 p-4 rounded-md text-sm text-secondary-foreground">
-                <p>"Ayer lo pasamos muy bien!"</p>
-                <p>"Me siento tan feliz cuando estoy contigo."</p>
+                <p>"Eres estúpido, ¿Cómo pudiste hacer eso? ¡Eres un/una idiota!"</p>
+                <p>"Cálmate, fue un error..."</p>
+                <p>"¡Un error! Siempre arruinas todo. No sirves para nada."</p>
               </div>
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold text-muted-foreground">Estado Emocional</h3>
