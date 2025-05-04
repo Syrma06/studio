@@ -45,7 +45,7 @@ function HeroSection1() {
 
            {/* Right Column: Image and Card */}
            <div className="relative">
-             {/* Removed the absolute positioned image */}
+             {/* Card remains */}
               <Card className="relative bg-card shadow-lg rounded-lg overflow-hidden ml-0 lg:ml-12 mt-12 lg:mt-0">
                 <CardHeader className="bg-muted/30 p-4 flex flex-row items-center space-x-2">
                   <div className="flex space-x-1.5">
@@ -84,35 +84,35 @@ function HeroSection1() {
   );
 }
 
-// Define the FeatureCard component
-interface FeatureCardProps {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  imageUrl: string;
-  imageHint: string;
-}
+// FeatureCard component definition is removed as it's no longer used
+// interface FeatureCardProps {
+//   icon: React.ElementType;
+//   title: string;
+//   description: string;
+//   imageUrl: string;
+//   imageHint: string;
+// }
 
-function FeatureCard({ icon: Icon, title, description, imageUrl, imageHint }: FeatureCardProps) {
-  return (
-    <Card className="flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300 hover:bg-primary hover:text-primary-foreground group"> {/* Changed hover bg and text, added group */}
-      <CardContent className="p-6 flex flex-col items-center">
-         {/* Placeholder Image */}
-         <Image
-            src={imageUrl}
-            alt={title}
-            width={150}
-            height={100}
-            className="mb-4 rounded-md object-cover h-[100px] w-[150px]"
-            data-ai-hint={imageHint}
-          />
-        {/* <Icon className="w-10 h-10 mb-4 text-primary" /> */}
-        <CardTitle className="tracking-tight text-lg font-semibold mb-2">{title}</CardTitle>
-        <CardDescription className="group-hover:text-primary-foreground">{description}</CardDescription> {/* Ensure description text changes color on hover */}
-      </CardContent>
-    </Card>
-  );
-}
+// function FeatureCard({ icon: Icon, title, description, imageUrl, imageHint }: FeatureCardProps) {
+//   return (
+//     <Card className="flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300 hover:bg-primary hover:text-primary-foreground group"> {/* Changed hover bg and text, added group */}
+//       <CardContent className="p-6 flex flex-col items-center">
+//          {/* Placeholder Image */}
+//          <Image
+//             src={imageUrl}
+//             alt={title}
+//             width={150}
+//             height={100}
+//             className="mb-4 rounded-md object-cover h-[100px] w-[150px]"
+//             data-ai-hint={imageHint}
+//           />
+//         {/* <Icon className="w-10 h-10 mb-4 text-primary" /> */}
+//         <CardTitle className="tracking-tight text-lg font-semibold mb-2">{title}</CardTitle>
+//         <CardDescription className="group-hover:text-primary-foreground">{description}</CardDescription> {/* Ensure description text changes color on hover */}
+//       </CardContent>
+//     </Card>
+//   );
+// }
 
 
 export default function WelcomePage() {
@@ -120,8 +120,9 @@ export default function WelcomePage() {
     <main className="flex min-h-screen flex-col items-center bg-background">
       <HeroSection1 />
 
-      {/* Features Section */}
-      <section className="w-full py-12 md:py-20 lg:py-24 bg-muted/30"> {/* Changed background to muted */}
+      {/* Features Section REMOVED */}
+      {/*
+      <section className="w-full py-12 md:py-20 lg:py-24 bg-muted/30">
         <div className="container px-4 md:px-6">
           <h2 className="text-3xl font-bold tracking-tighter text-center mb-10 sm:text-4xl md:text-5xl text-primary">
             ¿Qué relaciones puedes entender mejor con Alumbra?
@@ -131,7 +132,7 @@ export default function WelcomePage() {
               icon={Users}
               title="Relaciones Personales"
               description="Identifica señales de estrés y tensiones en tus relaciones cotidianas."
-              imageUrl="https://img.freepik.com/vector-gratis/ilustracion-vector-concepto-abstracto-manipulacion-psicologica-abuso-mental-psicologia-oscura-chantaje-emocional-ingenieria-social-efecto-luz-gas-metafora-abstracta-manipulacion-cerebral_12469758.jpg?w=740&t=st=1717523852~exp=1717524452~hmac=34c22df039d383728d7506d1b0dd80e10903f55f5f4f26835d39a6945e754073" // Updated with direct image URL
+              imageUrl="/home/user/studio/img/heart-solid.jpg+" // Updated with direct image URL
               imageHint="psychological manipulation mental abuse drawing" // Updated hint
             />
             <FeatureCard
@@ -139,7 +140,7 @@ export default function WelcomePage() {
               title="Relaciones Familiares" // Changed title
               description="Detecta conflictos emocionales y mejora la comunicación con tus seres queridos." // Changed description
                imageUrl="https://picsum.photos/150/100?random=2"
-              imageHint="family discussion argument" // Changed image hint
+               imageHint="family discussion argument" // Changed image hint
             />
             <FeatureCard
               icon={HeartHandshake} // Using HeartHandshake for Autism/Empathy
@@ -158,6 +159,7 @@ export default function WelcomePage() {
           </div>
         </div>
       </section>
+      */}
 
       {/* Footer Section - Optional */}
        <footer className="w-full py-6 bg-background border-t">
@@ -169,4 +171,3 @@ export default function WelcomePage() {
     </main>
   );
 }
-
