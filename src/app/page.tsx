@@ -123,7 +123,7 @@ export default function WelcomePage() {
               icon={Users}
               title="Relaciones Personales"
               description="Identifica señales de estrés y tensiones en tus relaciones cotidianas."
-              imageUrl="https://picsum.photos/150/100?random=5" // Updated random seed
+              imageUrl="https://www.freepik.es/vector-gratis/ilustracion-vector-concepto-abstracto-manipulacion-psicologica-abuso-mental-psicologia-oscura-chantaje-emocional-ingenieria-social-efecto-luz-gas-metafora-abstracta-manipulacion-cerebral_12469758.htm" // Updated random seed
               imageHint="psychological manipulation mental abuse drawing" // Updated hint
             />
             <FeatureCard

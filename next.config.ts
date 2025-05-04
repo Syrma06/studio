@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      { // Add freepik.es hostname
+        protocol: 'https',
+        hostname: 'www.freepik.es',
+        port: '',
+        pathname: '/**',
+      },
+      { // Add img.freepik.com hostname as it's often used for direct image links
+        protocol: 'https',
+        hostname: 'img.freepik.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
