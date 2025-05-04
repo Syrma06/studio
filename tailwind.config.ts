@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -82,11 +83,22 @@ export default {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+         // Add shimmer animation
+         shimmer: {
+            "0%, 90%, 100%": {
+              "background-position": "calc(-100% - var(--shimmer-width)) 0",
+            },
+            "30%, 60%": {
+              "background-position": "calc(100% + var(--shimmer-width)) 0",
+            },
+          },
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+         // Add shimmer animation
+         shimmer: "shimmer 8s infinite", // Adjust duration as needed
   		}
   	}
   },

@@ -1,8 +1,11 @@
+
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
 import { AlertTriangle, Frown, Users, Home, HeartHandshake, Siren } from 'lucide-react'; // Changed Smile to Frown, imported Home, removed Accessibility
+import AnimatedShinyText from '@/components/ui/animated-shiny-text'; // Import AnimatedShinyText
+import { cn } from "@/lib/utils"; // Import cn utility
 
 // Define the HeroSection1 component (adapted from the provided image and structure)
 function HeroSection1() {
@@ -13,7 +16,15 @@ function HeroSection1() {
           <div className="flex flex-col justify-center space-y-4">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-primary">
-               Alumbra: Ponle luz a tus palabras, claridad a tus vínculos
+                {/* Wrap "Alumbra" with AnimatedShinyText and apply yellow gradient */}
+                <AnimatedShinyText
+                  className={cn(
+                    `inline animate-gradient bg-gradient-to-r from-[#FDE68A] via-[#FBBF24] to-[#FDE68A] bg-[length:var(--shimmer-width)_100%] bg-clip-text text-transparent`, // Yellow gradient
+                  )}
+                >
+                    Alumbra
+                </AnimatedShinyText>
+                : Ponle luz a tus palabras, claridad a tus vínculos
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl">
                 Con una simple acción de copiar y pegar la última conversación, Alumbra podría esbozar un escenario preocupante que indique una señal de advertencia hacia tu salud emocional.
@@ -112,7 +123,7 @@ export default function WelcomePage() {
               title="Relaciones Personales"
               description="Identifica señales de estrés y tensiones en tus relaciones cotidianas."
               imageUrl="https://picsum.photos/150/100?random=1"
-              imageHint="student group study"
+              imageHint="tense conversation friends" // Updated hint
             />
             <FeatureCard
               icon={Home} // Changed icon
@@ -126,14 +137,14 @@ export default function WelcomePage() {
               title="Relaciones Amorosas" // Changed title from Espectro Autista
               description="Analiza la salud emocional de tu relación y detecta señales de manipulación o abuso verbal."
                imageUrl="https://picsum.photos/150/100?random=3"
-               imageHint="toxic relationship couple bound" // Updated hint based on the provided image
+               imageHint="toxic relationship couple bound chain" // Updated hint based on the provided image
             />
             <FeatureCard
               icon={Siren} // Using Siren as a warning sign
               title="Relaciones laborales"
               description="Identifica patrones de estrés, manipulación o falta de reconocimiento en el trabajo."
                imageUrl="https://picsum.photos/150/100?random=4"
-               imageHint="workplace manipulation power imbalance"
+               imageHint="workplace manipulation power imbalance stress" // Updated hint
             />
           </div>
         </div>
